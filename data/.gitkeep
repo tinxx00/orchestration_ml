@@ -1,0 +1,6 @@
+# Placez ici le fichier heart.csv téléchargé depuis :
+# https://www.kaggle.com/code/mragpavank/heart-disease-uci/input
+#
+# Le fichier attendu est : heart.csv
+# Colonnes : age, sex, cp, trestbps, chol, fbs, restecg,
+#            thalach, exang, oldpeak, slope, ca, thal, target

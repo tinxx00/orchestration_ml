@@ -1,0 +1,50 @@
+# ==============================================================================
+# .gitignore — Projet MLOps Heart Disease
+# ==============================================================================
+
+# Environnement Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.Python
+
+# uv
+uv.lock
+
+# MLflow
+mlruns/
+mlartifacts/
+
+# Modèles et artefacts entraînés
+models/*.joblib
+models/*.pkl
+models/*.png
+
+# Données sensibles et secrets
+.env
+*.env
+
+# Dataset brut (lourd — télécharger via Kaggle)
+# data/heart.csv   ← décommentez si vous ne voulez pas versionner le CSV
+
+# IDE
+.vscode/
+.idea/
+*.DS_Store
+*.swp
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Tests
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Docker
+*.log
