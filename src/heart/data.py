@@ -4,7 +4,7 @@ from __future__ import annotations
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-from churn.config import DATA_PATH, RANDOM_STATE, TARGET, TEST_SIZE
+from heart.config import DATA_PATH, RANDOM_STATE, TARGET, TEST_SIZE
 
 
 def load_data() -> pd.DataFrame:

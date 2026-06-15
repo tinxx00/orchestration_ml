@@ -1,4 +1,4 @@
-"""Configuration du projet — seul fichier à adapter à votre dataset (TP S0)."""
+"""Configuration du projet Heart Disease UCI — seul fichier à adapter (TP S0)."""
 from pathlib import Path
 
 # Racine du projet (3 niveaux au-dessus de src/churn/config.py)

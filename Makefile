@@ -105,19 +105,19 @@ data: ## Prepare/genere le jeu de donnees dans data/
 	@test -f data/heart.csv && echo "$(GREEN)[OK] heart.csv present$(RESET)" || echo "$(RED)[ERREUR] Telecharger heart.csv depuis Kaggle -> data/$(RESET)"
 
 train: ## Entraine la baseline -> models/model.joblib (C=.. MAX_ITER=..)
-	# TODO (S5) : $(PYTHON) -m churn.train --c $(C) --max-iter $(MAX_ITER)
+	# TODO (S5) : $(PYTHON) -m heart.train --c $(C) --max-iter $(MAX_ITER)
 
 train-models: ## Compare RF / XGBoost / LightGBM (GridSearchCV) + SHAP (CV=.. SCORING=..)
-	# TODO (S7) : $(PYTHON) -m churn.train_models --cv $(CV) --scoring $(SCORING)
+	# TODO (S7) : $(PYTHON) -m heart.train_models --cv $(CV) --scoring $(SCORING)
 
 train-optuna: ## Optimise RF / XGBoost / LightGBM avec Optuna (N_TRIALS=.. CV=..)
-	# TODO (S6) : $(PYTHON) -m churn.train_optuna --n-trials $(N_TRIALS) --cv $(CV)
+	# TODO (S6) : $(PYTHON) -m heart.train_optuna --n-trials $(N_TRIALS) --cv $(CV)
 
 mlflow: ## Demarre le serveur MLflow (docker compose)
 	# TODO (S5) : docker compose -f docker-compose.yml up -d mlflow
 
 api: ## Lance l'API FastAPI en rechargement auto (voir API_HOST/API_PORT)
-	# TODO (S12) : $(RUN) uvicorn churn.api:app --reload --host $(API_HOST) --port $(API_PORT)
+	# TODO (S12) : $(RUN) uvicorn heart.api:app --reload --host $(API_HOST) --port $(API_PORT)
 
 frontend: ## Lance le frontend Streamlit (voir FRONTEND_PORT, API_URL)
 	# TODO (S14bis) : $(RUN) streamlit run frontend/app.py --server.port $(FRONTEND_PORT)
@@ -145,13 +145,13 @@ docker-down: ## Arrete et supprime les conteneurs (conserve les volumes)
 # ==============================================================================
 
 lint: ## Verifie le style (ruff)
-	# TODO : $(RUN) ruff check src/churn
+	# TODO : $(RUN) ruff check src/heart
 
 format: ## Formate le code (ruff)
-	# TODO : $(RUN) ruff format src/churn
+	# TODO : $(RUN) ruff format src/heart
 
 type: ## Verifie les types (mypy)
-	# TODO : $(RUN) mypy src/churn
+	# TODO : $(RUN) mypy src/heart
 
 test: ## Lance les tests (pytest)
 	# TODO : $(RUN) pytest

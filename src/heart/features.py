@@ -9,7 +9,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OrdinalEncoder, StandardScaler
 
-from churn.config import CATEGORICAL_FEATURES, NUMERIC_FEATURES
+from heart.config import CATEGORICAL_FEATURES, NUMERIC_FEATURES
 
 
 def build_preprocessor() -> ColumnTransformer:
