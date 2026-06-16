@@ -9,6 +9,8 @@ from __future__ import annotations
 import argparse
 
 import joblib
+import mlflow
+import mlflow.sklearn
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score, roc_auc_score
 from sklearn.pipeline import Pipeline
@@ -16,13 +18,13 @@ from sklearn.pipeline import Pipeline
 from heart.config import (
     C,
     MAX_ITER,
+    MLFLOW_EXPERIMENT,
+    MLFLOW_TRACKING_URI,
     MODELS_DIR,
     RANDOM_STATE,
 )
 from heart.data import get_splits, load_data
 from heart.features import build_preprocessor
-
-# TODO (S5-1) : importer mlflow et mlflow.sklearn
 
 
 def build_model(c: float = C, max_iter: int = MAX_ITER) -> Pipeline:
@@ -41,30 +43,31 @@ def train(c: float = C, max_iter: int = MAX_ITER) -> dict[str, float]:
     df = load_data()
     x_train, x_test, y_train, y_test = get_splits(df)
 
-    # TODO (S5-2) : configurer l'URI de tracking + l'experience
-    # TODO (S5-3) : ouvrir un run englobant entrainement + evaluation
+    mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+    mlflow.set_experiment(MLFLOW_EXPERIMENT)
 
-    model = build_model(c=c, max_iter=max_iter)
-    model.fit(x_train, y_train)
+    with mlflow.start_run(run_name=f"logreg-c{c}"):
+        model = build_model(c=c, max_iter=max_iter)
+        model.fit(x_train, y_train)
 
-    y_prob = model.predict_proba(x_test)[:, 1]
-    y_pred = (y_prob >= 0.5).astype(int)
+        y_prob = model.predict_proba(x_test)[:, 1]
+        y_pred = (y_prob >= 0.5).astype(int)
 
-    metrics = {
-        "f1": float(f1_score(y_test, y_pred)),
-        "roc_auc": float(roc_auc_score(y_test, y_prob)),
-    }
-    print(f"f1={metrics['f1']:.3f}  roc_auc={metrics['roc_auc']:.3f}")
+        metrics = {
+            "f1": float(f1_score(y_test, y_pred)),
+            "roc_auc": float(roc_auc_score(y_test, y_prob)),
+        }
+        print(f"f1={metrics['f1']:.3f}  roc_auc={metrics['roc_auc']:.3f}")
 
-    # TODO (S5-4) : logger les parametres avec mlflow.log_params
-    # TODO (S5-5) : logger les metriques avec mlflow.log_metrics
-    # TODO (S5-6) : logger le modele avec mlflow.sklearn.log_model
+        mlflow.log_params({"c": c, "max_iter": max_iter, "model": "logreg"})
+        mlflow.log_metrics(metrics)
+        mlflow.sklearn.log_model(model, name="model")
 
-    MODELS_DIR.mkdir(parents=True, exist_ok=True)
-    model_path = MODELS_DIR / "model.joblib"
-    joblib.dump(model, model_path)
-    print(f"[OK] Modèle sauvegardé → {model_path}")
-    return metrics
+        MODELS_DIR.mkdir(parents=True, exist_ok=True)
+        model_path = MODELS_DIR / "model.joblib"
+        joblib.dump(model, model_path)
+        print(f"[OK] Modèle sauvegardé → {model_path}")
+        return metrics
 
 
 def parse_args() -> argparse.Namespace:
