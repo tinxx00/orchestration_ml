@@ -44,6 +44,7 @@ CATEGORICAL_FEATURES = [
 # MLflow
 # ===========================================================================
 MLFLOW_TRACKING_URI = "http://localhost:5000"
+API_URL = "http://127.0.0.1:8000"
 MLFLOW_EXPERIMENT   = "heart-disease-baseline"
 MLFLOW_EXPERIMENT_DESCRIPTION = "Comparaison et suivi des modèles de prédiction de maladies cardiaques"
 MLFLOW_EXPERIMENT_TAGS = {

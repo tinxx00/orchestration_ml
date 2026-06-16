@@ -3,7 +3,7 @@
 # ==============================================================================
 # Dataset  : Heart Disease UCI (Cleveland) - 303 patients, 14 colonnes
 # Cible    : target (0 = sain, 1 = maladie cardiaque)
-# Package  : src/churn  |  Python 3.13  |  Gestionnaire : uv
+# Package  : src/heart  |  Python 3.13  |  Gestionnaire : uv
 # Aide     : make help
 # ==============================================================================
 
@@ -34,7 +34,7 @@ RESET  := $(shell printf '\033[0m')
 
 .PHONY: help \
         check-uv check-venv venv-create install sync deps-sync lock reset-env doctor \
-        data train train-models train-optuna mlflow api frontend \
+	data train evaluate train-models train-optuna mlflow api frontend predict-client \
         docker-build docker-run docker-up docker-down \
         lint format type test check
 
@@ -105,22 +105,28 @@ data: ## Prepare/genere le jeu de donnees dans data/
 	@test -f data/heart.csv && echo "$(GREEN)[OK] heart.csv present$(RESET)" || echo "$(RED)[ERREUR] Telecharger heart.csv depuis Kaggle -> data/$(RESET)"
 
 train: ## Entraine la baseline -> models/model.joblib (C=.. MAX_ITER=..)
-	# TODO (S5) : $(PYTHON) -m heart.train --c $(C) --max-iter $(MAX_ITER)
+	$(PYTHON) -m heart.train --c $(C) --max-iter $(MAX_ITER)
+
+evaluate: ## Evalue le dernier modele (MLflow alias/version ou fallback)
+	$(PYTHON) -m heart.evaluation
 
 train-models: ## Compare RF / XGBoost / LightGBM (GridSearchCV) + SHAP (CV=.. SCORING=..)
-	# TODO (S7) : $(PYTHON) -m heart.train_models --cv $(CV) --scoring $(SCORING)
+	$(PYTHON) -m heart.train_models --cv $(CV) --scoring $(SCORING)
 
 train-optuna: ## Optimise RF / XGBoost / LightGBM avec Optuna (N_TRIALS=.. CV=..)
-	# TODO (S6) : $(PYTHON) -m heart.train_optuna --n-trials $(N_TRIALS) --cv $(CV)
+	$(PYTHON) -m heart.train_optuna --n-trials $(N_TRIALS) --cv $(CV)
 
 mlflow: ## Demarre le serveur MLflow (docker compose)
-	# TODO (S5) : docker compose -f docker-compose.yml up -d mlflow
+	docker compose -f docker-compose.yml up -d mlflow
 
 api: ## Lance l'API FastAPI en rechargement auto (voir API_HOST/API_PORT)
-	# TODO (S12) : $(RUN) uvicorn heart.api:app --reload --host $(API_HOST) --port $(API_PORT)
+	$(RUN) uvicorn heart.api:app --reload --host $(API_HOST) --port $(API_PORT)
 
 frontend: ## Lance le frontend Streamlit (voir FRONTEND_PORT, API_URL)
-	# TODO (S14bis) : $(RUN) streamlit run frontend/app.py --server.port $(FRONTEND_PORT)
+	$(RUN) streamlit run frontend/app.py --server.port $(FRONTEND_PORT)
+
+predict-client: ## Lance le client de test API (/health, /predict, /model-info)
+	$(PYTHON) scripts/predict_client.py
 
 
 # ==============================================================================
@@ -128,16 +134,16 @@ frontend: ## Lance le frontend Streamlit (voir FRONTEND_PORT, API_URL)
 # ==============================================================================
 
 docker-build: ## Construit l'image d'entrainement
-	# TODO (S8) : docker build -f docker/Dockerfile.train -t heart-disease-train .
+	docker build -f docker/Dockerfile.train -t heart-disease-train .
 
 docker-run: ## Lance l'entrainement en conteneur
-	# TODO (S8) : docker run --rm -v "$(CURDIR)/models:/app/models" heart-disease-train
+	docker run --rm -v "$(CURDIR)/models:/app/models" heart-disease-train
 
 docker-up: ## Demarre la stack (mlflow, api, frontend)
-	# TODO (S14) : docker compose -f docker-compose.yml up -d --build mlflow api frontend
+	docker compose -f docker-compose.yml up -d --build mlflow api frontend
 
 docker-down: ## Arrete et supprime les conteneurs (conserve les volumes)
-	# TODO (S14) : docker compose -f docker-compose.yml down
+	docker compose -f docker-compose.yml down
 
 
 # ==============================================================================
@@ -145,15 +151,15 @@ docker-down: ## Arrete et supprime les conteneurs (conserve les volumes)
 # ==============================================================================
 
 lint: ## Verifie le style (ruff)
-	# TODO : $(RUN) ruff check src/heart
+	$(RUN) ruff check src/heart
 
 format: ## Formate le code (ruff)
-	# TODO : $(RUN) ruff format src/heart
+	$(RUN) ruff format src/heart
 
 type: ## Verifie les types (mypy)
-	# TODO : $(RUN) mypy src/heart
+	$(RUN) mypy src/heart
 
 test: ## Lance les tests (pytest)
-	# TODO : $(RUN) pytest
+	$(RUN) pytest
 
 check: lint type test ## Workflow qualite complet (lint + types + tests)
