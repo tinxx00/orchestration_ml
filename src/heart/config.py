@@ -52,6 +52,7 @@ MLFLOW_EXPERIMENT_TAGS = {
     "task": "binary-classification",
 }
 MODEL_NAME          = "heart-disease-classifier"
+MODEL_ALIAS         = "champion"
 
 # ===========================================================================
 # Split train/test

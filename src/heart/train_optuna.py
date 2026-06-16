@@ -43,9 +43,9 @@ from sklearn.pipeline import Pipeline
 from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
 
-from heart.config import MODEL_NAME, MODELS_DIR, RANDOM_STATE
+from heart.config import MODEL_ALIAS, MODEL_NAME, MODELS_DIR, RANDOM_STATE
 from heart.data import get_splits, load_data
-from heart.evaluation import log_shap_summary
+from heart.evaluation import evaluate_pipeline, load_model_from_uri, log_shap_summary
 from heart.features import build_preprocessor
 from heart.tracking import log_dataset, setup_experiment
 
@@ -334,8 +334,6 @@ def log_family_to_mlflow(
         report_text = cast(str, classification_report(y_test, result.preds))
         mlflow.log_text(report_text, "classification_report.txt")
 
-        log_shap_summary(result.best_pipeline, x_test, name=result.spec.name)
-
         signature = infer_signature(x_test, result.best_pipeline.predict(x_test))
         model_info = mlflow.sklearn.log_model(
             result.best_pipeline,
@@ -345,14 +343,31 @@ def log_family_to_mlflow(
             registered_model_name=register_as,
         )
 
+        pipeline_for_evaluation = result.best_pipeline
+        resolved_model_uri = model_info.model_uri
+
         if register_as and model_info.registered_model_version:
+            client = mlflow.MlflowClient()
+            registered_version = int(model_info.registered_model_version)
+            client.set_registered_model_alias(register_as, MODEL_ALIAS, str(registered_version))
+            resolved_model_uri = f"models:/{register_as}@{MODEL_ALIAS}"
+            pipeline_for_evaluation, resolved_model_uri = load_model_from_uri(
+                model_uri=resolved_model_uri
+            )
+            mlflow.log_param("registered_model_uri", resolved_model_uri)
+            registry_metrics = evaluate_pipeline(pipeline_for_evaluation, x_test, y_test)
+            mlflow.log_metrics({f"registry_{key}": value for key, value in registry_metrics.items()})
             describe_registered_version(
                 name=register_as,
-                version=int(model_info.registered_model_version),
+                version=registered_version,
                 result=result,
                 n_trials=n_trials,
                 cv=cv,
             )
+        else:
+            mlflow.log_param("logged_model_uri", resolved_model_uri)
+
+        log_shap_summary(pipeline_for_evaluation, x_test, name=result.spec.name)
 
 
 def describe_registered_version(
