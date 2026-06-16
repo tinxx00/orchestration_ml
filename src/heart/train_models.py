@@ -15,8 +15,6 @@ from sklearn.pipeline import Pipeline
 from xgboost import XGBClassifier
 
 from heart.config import (
-    MLFLOW_EXPERIMENT,
-    MLFLOW_TRACKING_URI,
     MODEL_NAME,
     MODELS_DIR,
     RANDOM_STATE,
@@ -24,6 +22,7 @@ from heart.config import (
 from heart.data import get_splits, load_data
 from heart.evaluation import shap_summary
 from heart.features import build_preprocessor
+from heart.tracking import log_dataset, setup_experiment
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
@@ -83,9 +82,8 @@ def train_models(cv: int, scoring: str, use_mlflow: bool = True) -> None:
     models = _build_models()
 
     if use_mlflow:
-        mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
-        mlflow.set_experiment(MLFLOW_EXPERIMENT)
-        logger.info("MLflow tracking: %s / experiment=%s", MLFLOW_TRACKING_URI, MLFLOW_EXPERIMENT)
+        setup_experiment()
+        logger.info("MLflow tracking configuré")
 
     best_name = ""
     best_score = -1.0
@@ -96,6 +94,7 @@ def train_models(cv: int, scoring: str, use_mlflow: bool = True) -> None:
         if use_mlflow:
             mlflow.log_param("cv", cv)
             mlflow.log_param("scoring", scoring)
+            log_dataset(df, context="training", name="heart_disease_uci")
 
         for name, (clf, grid) in models.items():
             logger.info("Optimisation de %s", name)
