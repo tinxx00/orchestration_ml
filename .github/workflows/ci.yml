@@ -61,6 +61,8 @@ jobs:
         run: uv sync --extra dev
 
       - name: Donnees + entrainement de la baseline
+        env:
+          MLFLOW_TRACKING_URI: sqlite:///mlflow_ci.db
         run: |
           PYTHONPATH=src uv run python -m heart.train
 

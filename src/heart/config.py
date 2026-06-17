@@ -1,4 +1,5 @@
 """Configuration du projet Heart Disease UCI — seul fichier à adapter (TP S0)."""
+import os
 from pathlib import Path
 
 # Racine du projet (3 niveaux au-dessus de src/churn/config.py)
@@ -43,7 +44,7 @@ CATEGORICAL_FEATURES = [
 # ===========================================================================
 # MLflow
 # ===========================================================================
-MLFLOW_TRACKING_URI = "http://localhost:5000"
+MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
 API_URL = "http://127.0.0.1:8000"
 MLFLOW_EXPERIMENT   = "heart-disease-baseline"
 MLFLOW_EXPERIMENT_DESCRIPTION = "Comparaison et suivi des modèles de prédiction de maladies cardiaques"
