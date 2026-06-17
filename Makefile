@@ -139,8 +139,8 @@ docker-build: ## Construit l'image d'entrainement
 docker-run: ## Lance l'entrainement en conteneur
 	docker run --rm -v "$(CURDIR)/models:/app/models" heart-disease-train
 
-docker-up: ## Demarre la stack (mlflow, api, frontend)
-	docker compose -f docker-compose.yml up -d --build mlflow api frontend
+docker-up: ## Demarre la stack (mlflow, api)
+	docker compose -f docker-compose.yml up -d --build mlflow api
 
 docker-down: ## Arrete et supprime les conteneurs (conserve les volumes)
 	docker compose -f docker-compose.yml down

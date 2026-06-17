@@ -1,0 +1,15 @@
+# ==============================================================================
+# Dockerfile.train — image d'entraînement — à compléter (TP S8)
+# ==============================================================================
+
+FROM python:3.13-slim
+
+WORKDIR /app
+
+COPY pyproject.toml uv.lock ./
+RUN pip install --no-cache-dir uv && uv sync --frozen --no-dev
+
+COPY src/ src/
+COPY data/ data/
+
+CMD ["uv", "run", "python", "-m", "heart.train"]

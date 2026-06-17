@@ -48,5 +48,3 @@ htmlcov/
 
 # Docker
 *.log
-docker-compose.yml
-docker/
