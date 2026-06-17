@@ -36,5 +36,35 @@ services:
     volumes:
       - ./models:/app/models
 
+  # --------------------------------------------------------------------------
+  # Entraînement (profil optionnel)
+  # --------------------------------------------------------------------------
+  train:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.train
+    profiles:
+      - train
+    depends_on:
+      - mlflow
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+    volumes:
+      - ./models:/app/models
+
+  # --------------------------------------------------------------------------
+  # Frontend Streamlit
+  # --------------------------------------------------------------------------
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    ports:
+      - "8502:8501"
+    depends_on:
+      - api
+    environment:
+      - API_URL=http://api:8000
+
 volumes:
   mlflow_data:

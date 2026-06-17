@@ -15,7 +15,7 @@ PYTHONPATH   ?= src
 export PYTHONPATH
 API_HOST     ?= 127.0.0.1
 API_PORT     ?= 8000
-FRONTEND_PORT ?= 8501
+FRONTEND_PORT ?= 8502
 MLFLOW_PORT  := 5000
 C            ?= 1.0
 MAX_ITER     ?= 1000
@@ -139,8 +139,8 @@ docker-build: ## Construit l'image d'entrainement
 docker-run: ## Lance l'entrainement en conteneur
 	docker run --rm -v "$(CURDIR)/models:/app/models" heart-disease-train
 
-docker-up: ## Demarre la stack (mlflow, api)
-	docker compose -f docker-compose.yml up -d --build mlflow api
+docker-up: ## Demarre la stack (mlflow, api, frontend)
+	docker compose -f docker-compose.yml up -d --build mlflow api frontend
 
 docker-down: ## Arrete et supprime les conteneurs (conserve les volumes)
 	docker compose -f docker-compose.yml down
