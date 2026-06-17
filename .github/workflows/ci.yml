@@ -2,37 +2,70 @@ name: CI
 
 on:
   push:
-    branches: ["main"]
   pull_request:
-    branches: ["main"]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
-  checks:
+  quality:
+    name: Qualite (lint + types + tests)
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout du depot
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Installation de uv (avec cache)
+        uses: astral-sh/setup-uv@v8.2.0
         with:
-          python-version: "3.13"
+          enable-cache: true
+          cache-dependency-glob: uv.lock
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v3
-
-      - name: Sync dependencies
+      - name: Installation des dependances (projet + dev)
         run: uv sync --extra dev
 
-      - name: Makefile help
-        run: make help
+      - name: Lint (ruff)
+        run: uv run ruff check src/heart
 
-      - name: Python compile check
+      - name: Types (mypy)
+        run: uv run mypy src/heart
+
+      # - name: Tests (pytest)
+      #   run: uv run pytest
+
+      - name: Tests (temporairement desactives)
+        run: echo "Tests non actives pour le moment"
+
+  train:
+    name: Entrainement (Continuous Training)
+    runs-on: ubuntu-latest
+    needs: quality
+
+    steps:
+      - name: Checkout du depot
+        uses: actions/checkout@v4
+
+      - name: Installation de uv (avec cache)
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Installation des dependances
+        run: uv sync --extra dev
+
+      - name: Donnees + entrainement de la baseline
         run: |
-          PYTHONPATH=src uv run python -m py_compile \
-            src/heart/train.py \
-            src/heart/train_optuna.py \
-            src/heart/evaluation.py \
-            src/heart/api.py \
-            scripts/predict_client.py
+          PYTHONPATH=src uv run python -m heart.train
+
+      - name: Publication du modele en artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: model
+          path: models/model.joblib

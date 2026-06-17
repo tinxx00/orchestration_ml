@@ -18,13 +18,12 @@ from sklearn.pipeline import Pipeline
 from heart.config import (
     C,
     MAX_ITER,
-    MLFLOW_EXPERIMENT,
-    MLFLOW_TRACKING_URI,
     MODELS_DIR,
     RANDOM_STATE,
 )
 from heart.data import get_splits, load_data
 from heart.features import build_preprocessor
+from heart.tracking import log_dataset, setup_experiment
 
 
 def build_model(c: float = C, max_iter: int = MAX_ITER) -> Pipeline:
@@ -43,10 +42,10 @@ def train(c: float = C, max_iter: int = MAX_ITER) -> dict[str, float]:
     df = load_data()
     x_train, x_test, y_train, y_test = get_splits(df)
 
-    mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
-    mlflow.set_experiment(MLFLOW_EXPERIMENT)
+    setup_experiment()
 
     with mlflow.start_run(run_name=f"logreg-c{c}"):
+        log_dataset(df, context="training", name="heart_disease_uci")
         model = build_model(c=c, max_iter=max_iter)
         model.fit(x_train, y_train)
 
