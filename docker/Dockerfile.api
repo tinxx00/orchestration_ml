@@ -9,7 +9,6 @@ COPY pyproject.toml .
 RUN pip install --no-cache-dir uv && uv sync --no-dev
 
 COPY src/ src/
-COPY models/ models/
 
 EXPOSE 8000
 
