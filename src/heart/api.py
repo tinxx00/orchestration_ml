@@ -28,19 +28,19 @@ logger = logging.getLogger(__name__)
 
 
 class Features(BaseModel):
-    age: float = Field(..., example=52)
-    trestbps: float = Field(..., example=120)
-    chol: float = Field(..., example=240)
-    thalach: float = Field(..., example=150)
-    oldpeak: float = Field(..., example=1.0)
-    ca: float = Field(..., example=0)
-    sex: int = Field(..., example=1)
-    cp: int = Field(..., example=2)
-    fbs: int = Field(..., example=0)
-    restecg: int = Field(..., example=1)
-    exang: int = Field(..., example=0)
-    slope: int = Field(..., example=2)
-    thal: int = Field(..., example=3)
+    age: float = Field(..., examples=[52])
+    trestbps: float = Field(..., examples=[120])
+    chol: float = Field(..., examples=[240])
+    thalach: float = Field(..., examples=[150])
+    oldpeak: float = Field(..., examples=[1.0])
+    ca: float = Field(..., examples=[0])
+    sex: int = Field(..., examples=[1])
+    cp: int = Field(..., examples=[2])
+    fbs: int = Field(..., examples=[0])
+    restecg: int = Field(..., examples=[1])
+    exang: int = Field(..., examples=[0])
+    slope: int = Field(..., examples=[2])
+    thal: int = Field(..., examples=[3])
 
 app = FastAPI(
     title="Heart Disease Classifier API",
