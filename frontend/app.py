@@ -199,13 +199,20 @@ def get_experiments() -> list[dict]:
 
 
 def get_recent_runs(experiment_id: str, n: int = 8) -> list[dict]:
-    data = mlflow_get(
-        f"/api/2.0/mlflow/runs/search"
-        f"?experiment_ids={experiment_id}&max_results={n}&order_by=attributes.start_time+DESC"
-    )
-    if data:
-        return data.get("runs", [])
-    return []
+    try:
+        r = httpx.post(
+            f"{MLFLOW_URL}/api/2.0/mlflow/runs/search",
+            json={
+                "experiment_ids": [experiment_id],
+                "max_results": n,
+                "order_by": ["attributes.start_time DESC"],
+            },
+            timeout=4.0,
+        )
+        r.raise_for_status()
+        return r.json().get("runs", [])
+    except Exception:
+        return []
 
 
 def get_registered_models() -> list[dict]:
