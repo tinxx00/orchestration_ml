@@ -588,47 +588,9 @@ with tab4:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # ── MLflow ─────────────────────────────────────────────────────────────────
-    st.markdown("### 📊 MLflow — Expériences & Runs")
-
     if not mlf_ok:
         st.warning("MLflow inaccessible depuis le frontend.")
     else:
-        experiments = get_experiments()
-        if not experiments:
-            st.info("Aucune expérience trouvée.")
-        else:
-            exp_names = {e["experiment_id"]: e["name"] for e in experiments}
-            exp_ids   = list(exp_names.keys())
-
-            sel_id = st.selectbox(
-                "Expérience",
-                exp_ids,
-                format_func=lambda eid: f"{exp_names[eid]} (id={eid})",
-            )
-
-            runs = get_recent_runs(sel_id)
-            if not runs:
-                st.info("Aucun run pour cette expérience.")
-            else:
-                rows = []
-                for run in runs:
-                    info_r  = run.get("info", {})
-                    data    = run.get("data", {})
-                    metrics = {m["key"]: m["value"] for m in data.get("metrics", [])}
-                    params  = {p["key"]: p["value"] for p in data.get("params",  [])}
-                    rows.append({
-                        "Run"     : info_r.get("run_name", info_r.get("run_id", "")[:8]),
-                        "Statut"  : info_r.get("status", "-"),
-                        "Modèle"  : params.get("model", "-"),
-                        "F1"      : f"{float(metrics['f1']):.4f}"      if "f1"      in metrics else "-",
-                        "ROC AUC" : f"{float(metrics['roc_auc']):.4f}" if "roc_auc" in metrics else "-",
-                    })
-                df_runs = pd.DataFrame(rows)
-                st.dataframe(df_runs, use_container_width=True, hide_index=True)
-
-        st.markdown("<br>", unsafe_allow_html=True)
-
         # ── Model Registry ─────────────────────────────────────────────────────
         st.markdown("### 🏛️ MLflow — Model Registry")
         models = get_registered_models()
