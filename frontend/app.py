@@ -12,8 +12,13 @@ import streamlit as st
 
 API_URL        = os.getenv("API_URL",        "http://localhost:8000")
 MLFLOW_URL     = os.getenv("MLFLOW_URL",     "http://localhost:5000")
-API_PUBLIC_URL    = os.getenv("API_PUBLIC_URL",    API_URL)
-MLFLOW_PUBLIC_URL = os.getenv("MLFLOW_PUBLIC_URL", MLFLOW_URL)
+AIRFLOW_URL    = os.getenv("AIRFLOW_URL",     "http://localhost:8080")
+API_PUBLIC_URL     = os.getenv("API_PUBLIC_URL",     API_URL)
+MLFLOW_PUBLIC_URL  = os.getenv("MLFLOW_PUBLIC_URL",  MLFLOW_URL)
+AIRFLOW_PUBLIC_URL = os.getenv("AIRFLOW_PUBLIC_URL", AIRFLOW_URL)
+AIRFLOW_USER     = os.getenv("AIRFLOW_USER",     "admin")
+AIRFLOW_PASSWORD = os.getenv("AIRFLOW_PASSWORD", "admin")
+RETRAIN_DAG_ID   = os.getenv("RETRAIN_DAG_ID",   "model_retraining")
 
 # ─── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -227,6 +232,61 @@ def get_model_versions(name: str) -> list[dict]:
     if data:
         return data.get("model_versions", [])
     return []
+
+
+# ─── Airflow helpers ─────────────────────────────────────────────────────────────
+def airflow_get(path: str) -> dict | None:
+    try:
+        r = httpx.get(
+            f"{AIRFLOW_URL}{path}",
+            auth=(AIRFLOW_USER, AIRFLOW_PASSWORD),
+            timeout=5.0,
+        )
+        r.raise_for_status()
+        return r.json()
+    except Exception:
+        return None
+
+
+def get_airflow_health() -> bool:
+    data = airflow_get("/health")
+    if not data:
+        return False
+    meta = data.get("metadatabase", {}).get("status")
+    return meta == "healthy"
+
+
+def get_dag_runs(dag_id: str, n: int = 10) -> list[dict]:
+    data = airflow_get(
+        f"/api/v1/dags/{dag_id}/dagRuns?order_by=-execution_date&limit={n}"
+    )
+    if data:
+        return data.get("dag_runs", [])
+    return []
+
+
+def _fmt_dt(value: str | None) -> str:
+    if not value:
+        return "-"
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00")).strftime(
+            "%d/%m/%Y %H:%M"
+        )
+    except Exception:
+        return value
+
+
+def _duration(start: str | None, end: str | None) -> str:
+    if not start or not end:
+        return "-"
+    try:
+        s = datetime.fromisoformat(start.replace("Z", "+00:00"))
+        e = datetime.fromisoformat(end.replace("Z", "+00:00"))
+        secs = int((e - s).total_seconds())
+        return f"{secs // 60}m {secs % 60}s" if secs >= 60 else f"{secs}s"
+    except Exception:
+        return "-"
+
 
 # ─── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
@@ -504,9 +564,10 @@ with tab4:
     # ── Services status ────────────────────────────────────────────────────────
     api_ok2, _   = get_api_health()
     mlf_ok, _    = get_mlflow_health()
+    airflow_ok   = get_airflow_health()
     info2        = get_model_from_info = get_model_info() if api_ok2 else {}
 
-    s1, s2, s3 = st.columns(3)
+    s1, s2, s3, s4 = st.columns(4)
 
     def svc_card(col, icon, name, ok, detail, url):
         with col:
@@ -545,6 +606,10 @@ with tab4:
              True,
              "cette interface",
              API_PUBLIC_URL.replace(":8000", ":8502").replace("/docs", ""))
+    svc_card(s4, "🌀", "Airflow",
+             airflow_ok,
+             "orchestration des pipelines",
+             AIRFLOW_PUBLIC_URL)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -586,6 +651,72 @@ with tab4:
                 st.markdown(f"**Features numériques** : {', '.join(feats.get('numeric', []))}")
                 st.markdown(f"**Features catégorielles** : {', '.join(feats.get('categorical', []))}")
 
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ── Historique des ré-entraînements (Airflow) ───────────────────────────────
+    st.markdown("### 🌀 Airflow — Historique des ré-entraînements")
+    st.caption(
+        f"DAG `{RETRAIN_DAG_ID}` · prépare les données → entraîne → contrôle qualité"
+    )
+
+    if not airflow_ok:
+        st.warning("Airflow inaccessible depuis le frontend.")
+    else:
+        runs = get_dag_runs(RETRAIN_DAG_ID, n=10)
+        if not runs:
+            st.info("Aucun ré-entraînement enregistré pour le moment.")
+        else:
+            state_badge = {
+                "success": ("#38a169", "✅ Réussi"),
+                "running": ("#3182ce", "🔄 En cours"),
+                "failed":  ("#e53e3e", "❌ Échoué"),
+                "queued":  ("#d69e2e", "⏳ En file"),
+            }
+            n_ok = sum(1 for r in runs if r.get("state") == "success")
+            k1, k2 = st.columns(2)
+            with k1:
+                st.markdown(f"""<div class="kpi-card">
+                    <div class="kpi-value">{len(runs)}</div>
+                    <div class="kpi-label">Runs affichés</div></div>""",
+                    unsafe_allow_html=True)
+            with k2:
+                st.markdown(f"""<div class="kpi-card">
+                    <div class="kpi-value" style="color:#38a169;">{n_ok}</div>
+                    <div class="kpi-label">Réussis</div></div>""",
+                    unsafe_allow_html=True)
+
+            st.markdown("<br>", unsafe_allow_html=True)
+
+            for r in runs:
+                state = r.get("state", "")
+                color, label = state_badge.get(state, ("#6b7fa8", state or "-"))
+                trigger = (r.get("run_type") or "").replace("_", " ")
+                st.markdown(f"""
+                <div style="background:#1a1f3c; border:1px solid #2d3561;
+                            border-left:4px solid {color}; border-radius:10px;
+                            padding:0.7rem 1.2rem; margin:0.4rem 0; display:flex;
+                            align-items:center; gap:1.2rem;">
+                    <span style="color:{color}; font-weight:700; font-size:0.85rem;
+                                 min-width:90px;">{label}</span>
+                    <span style="color:#e2e8f0; font-size:0.88rem;">
+                        🕒 {_fmt_dt(r.get('start_date'))}
+                    </span>
+                    <span style="color:#8896b3; font-size:0.82rem;">
+                        ⏱️ {_duration(r.get('start_date'), r.get('end_date'))}
+                    </span>
+                    <span style="color:#6b7fa8; font-size:0.78rem; margin-left:auto;">
+                        {trigger}
+                    </span>
+                </div>
+                """, unsafe_allow_html=True)
+
+            st.markdown(
+                f"<div style='margin-top:0.6rem;'>"
+                f"<a href='{AIRFLOW_PUBLIC_URL}/dags/{RETRAIN_DAG_ID}/grid' "
+                f"target='_blank' style='color:#7c8db5; font-size:0.82rem;'>"
+                f"🔗 Ouvrir le DAG dans Airflow</a></div>",
+                unsafe_allow_html=True,
+            )
 
 
 st.markdown(

@@ -69,8 +69,12 @@ services:
     environment:
       - API_URL=http://api:8000
       - MLFLOW_URL=http://mlflow:5000
+      - AIRFLOW_URL=http://airflow:8080
       - API_PUBLIC_URL=${API_PUBLIC_URL:-http://localhost:8000}
       - MLFLOW_PUBLIC_URL=${MLFLOW_PUBLIC_URL:-http://localhost:5000}
+      - AIRFLOW_PUBLIC_URL=${AIRFLOW_PUBLIC_URL:-http://localhost:8080}
+      - AIRFLOW_USER=admin
+      - AIRFLOW_PASSWORD=admin
 
   # --------------------------------------------------------------------------
   # Airflow (scheduler + webserver dans un seul conteneur, SQLite)
@@ -88,6 +92,7 @@ services:
       - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
       - AIRFLOW__CORE__LOAD_EXAMPLES=False
       - AIRFLOW__WEBSERVER__EXPOSE_CONFIG=True
+      - AIRFLOW__API__AUTH_BACKENDS=airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session
       - AIRFLOW__WEBSERVER__WORKERS=2
       - AIRFLOW__WEBSERVER__WORKER_REFRESH_INTERVAL=0
       - AIRFLOW__WEBSERVER__WEB_SERVER_WORKER_TIMEOUT=300
