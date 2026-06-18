@@ -586,39 +586,6 @@ with tab4:
                 st.markdown(f"**Features numériques** : {', '.join(feats.get('numeric', []))}")
                 st.markdown(f"**Features catégorielles** : {', '.join(feats.get('categorical', []))}")
 
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    if not mlf_ok:
-        st.warning("MLflow inaccessible depuis le frontend.")
-    else:
-        # ── Model Registry ─────────────────────────────────────────────────────
-        st.markdown("### 🏛️ MLflow — Model Registry")
-        models = get_registered_models()
-        if not models:
-            st.info("Aucun modèle enregistré dans le registry.")
-        else:
-            for model in models:
-                name = model.get("name", "-")
-                with st.expander(f"📦 {name}"):
-                    versions = get_model_versions(name)
-                    if not versions:
-                        st.write("Aucune version.")
-                    else:
-                        rows_v = []
-                        for v in sorted(versions, key=lambda x: int(x.get("version", 0)), reverse=True):
-                            aliases = ", ".join(v.get("aliases", [])) or "-"
-                            rows_v.append({
-                                "Version" : v.get("version", "-"),
-                                "Statut"  : v.get("status", "-"),
-                                "Aliases" : aliases,
-                                "Run ID"  : v.get("run_id", "-")[:12] + "...",
-                            })
-                        st.dataframe(pd.DataFrame(rows_v),
-                                     use_container_width=True, hide_index=True)
-                        st.markdown(
-                            f"[🔗 Ouvrir dans MLflow]({MLFLOW_PUBLIC_URL}/#/models/{name})",
-                            unsafe_allow_html=False,
-                        )
 
 
 st.markdown(
