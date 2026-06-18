@@ -34,7 +34,7 @@ RESET  := $(shell printf '\033[0m')
 
 .PHONY: help \
         check-uv check-venv venv-create install sync deps-sync lock reset-env doctor \
-	data train evaluate train-models train-optuna mlflow api frontend predict-client \
+	data train evaluate train-models train-optuna mlflow airflow api frontend predict-client \
         docker-build docker-run docker-up docker-down \
         lint format type test check
 
@@ -119,6 +119,9 @@ train-optuna: ## Optimise RF / XGBoost / LightGBM avec Optuna (N_TRIALS=.. CV=..
 mlflow: ## Demarre le serveur MLflow (docker compose)
 	docker compose -f docker-compose.yml up -d mlflow
 
+airflow: ## Demarre Airflow (scheduler + webserver) sur http://localhost:8080
+	docker compose -f docker-compose.yml up -d --build airflow
+
 api: ## Lance l'API FastAPI en rechargement auto (voir API_HOST/API_PORT)
 	$(RUN) uvicorn heart.api:app --reload --host $(API_HOST) --port $(API_PORT)
 
@@ -139,8 +142,8 @@ docker-build: ## Construit l'image d'entrainement
 docker-run: ## Lance l'entrainement en conteneur
 	docker run --rm -v "$(CURDIR)/models:/app/models" heart-disease-train
 
-docker-up: ## Demarre la stack (mlflow, api, frontend)
-	docker compose -f docker-compose.yml up -d --build mlflow api frontend
+docker-up: ## Demarre la stack complete (mlflow, api, frontend, airflow)
+	docker compose -f docker-compose.yml up -d --build mlflow api frontend airflow
 
 docker-down: ## Arrete et supprime les conteneurs (conserve les volumes)
 	docker compose -f docker-compose.yml down
