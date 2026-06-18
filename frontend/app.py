@@ -134,6 +134,34 @@ div[data-testid="stForm"] { background:#ffffff; border:1px solid #e2ecf5; border
 .link-btn.ghost { background:#ffffff; color:#5b9bd5 !important;
     border:1.5px solid #cfe2f4; box-shadow:none; }
 .link-btn.gh { background:linear-gradient(120deg,#2f3a4a,#44506a); }
+
+/* Menu de navigation latéral (radio stylisé) */
+section[data-testid="stSidebar"] div[role="radiogroup"] {
+    gap: 6px; display: flex; flex-direction: column;
+}
+section[data-testid="stSidebar"] div[role="radiogroup"] label {
+    display: flex; align-items: center; width: 100%; margin: 0;
+    padding: 11px 15px; border-radius: 12px; cursor: pointer;
+    background: #ffffff; border: 1px solid #e2ecf5;
+    font-weight: 600; font-size: 0.92rem; color: #34536e;
+    transition: background .15s, border-color .15s, transform .1s;
+}
+section[data-testid="stSidebar"] div[role="radiogroup"] label:hover {
+    background: #eaf4fc; border-color: #bcdcf5; transform: translateX(2px);
+}
+/* masquer le rond radio */
+section[data-testid="stSidebar"] div[role="radiogroup"] label > div:first-child {
+    display: none !important;
+}
+/* onglet actif */
+section[data-testid="stSidebar"] div[role="radiogroup"] label:has(input:checked) {
+    background: linear-gradient(120deg,#5b9bd5,#7ec0ef);
+    border-color: transparent;
+    box-shadow: 0 4px 12px rgba(91,155,213,0.30);
+}
+section[data-testid="stSidebar"] div[role="radiogroup"] label:has(input:checked) * {
+    color: #ffffff !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
