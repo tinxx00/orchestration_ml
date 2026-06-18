@@ -10,8 +10,10 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-API_URL    = os.getenv("API_URL",    "http://localhost:8000")
-MLFLOW_URL = os.getenv("MLFLOW_URL", "http://localhost:5000")
+API_URL        = os.getenv("API_URL",        "http://localhost:8000")
+MLFLOW_URL     = os.getenv("MLFLOW_URL",     "http://localhost:5000")
+API_PUBLIC_URL    = os.getenv("API_PUBLIC_URL",    API_URL)
+MLFLOW_PUBLIC_URL = os.getenv("MLFLOW_PUBLIC_URL", MLFLOW_URL)
 
 # ─── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -527,15 +529,15 @@ with tab4:
     svc_card(s1, "🤖", "API FastAPI",
              api_ok2,
              f"modèle : {info2.get('model_name','-')}",
-             f"{API_URL}/docs")
+             f"{API_PUBLIC_URL}/docs")
     svc_card(s2, "📊", "MLflow Tracking",
              mlf_ok,
              "expériences & model registry",
-             MLFLOW_URL)
+             MLFLOW_PUBLIC_URL)
     svc_card(s3, "🫀", "Frontend Streamlit",
              True,
              "cette interface",
-             "http://localhost:8502")
+             API_PUBLIC_URL.replace(":8000", ":8502").replace("/docs", ""))
 
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -557,7 +559,7 @@ with tab4:
                          font-size:0.78rem; padding:3px 10px; border-radius:6px;
                          min-width:48px; text-align:center;">{method}</span>
             <span style="color:#e2e8f0; font-family:monospace; font-size:0.9rem;">
-                {API_URL}{path}
+                {API_PUBLIC_URL}{path}
             </span>
             <span style="color:#6b7fa8; font-size:0.85rem; margin-left:auto;">
                 {desc}
@@ -644,7 +646,7 @@ with tab4:
                         st.dataframe(pd.DataFrame(rows_v),
                                      use_container_width=True, hide_index=True)
                         st.markdown(
-                            f"[🔗 Ouvrir dans MLflow]({MLFLOW_URL}/#/models/{name})",
+                            f"[🔗 Ouvrir dans MLflow]({MLFLOW_PUBLIC_URL}/#/models/{name})",
                             unsafe_allow_html=False,
                         )
 
@@ -652,6 +654,6 @@ with tab4:
 st.markdown(
     f"<hr style='border-color:#2d3561; margin-top:2rem;'>"
     f"<p style='text-align:center; color:#3d4f6e; font-size:0.78rem;'>"
-    f"API : {API_URL} &nbsp;|&nbsp; MLflow : {MLFLOW_URL}</p>",
+    f"API : {API_PUBLIC_URL} &nbsp;|&nbsp; MLflow : {MLFLOW_PUBLIC_URL}</p>",
     unsafe_allow_html=True,
 )
