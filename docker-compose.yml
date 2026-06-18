@@ -8,7 +8,7 @@ services:
   # MLflow Tracking Server
   # --------------------------------------------------------------------------
   mlflow:
-    image: ghcr.io/mlflow/mlflow:latest
+    image: ghcr.io/mlflow/mlflow:v2.22.0
     ports:
       - "5000:5000"
     volumes:
