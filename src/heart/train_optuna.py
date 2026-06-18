@@ -341,6 +341,7 @@ def log_family_to_mlflow(
             signature=signature,
             input_example=x_test.iloc[:5],
             registered_model_name=register_as,
+            serialization_format="cloudpickle",
         )
 
         pipeline_for_evaluation = result.best_pipeline

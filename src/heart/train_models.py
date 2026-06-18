@@ -145,6 +145,7 @@ def train_models(cv: int, scoring: str, use_mlflow: bool = True) -> None:
                         sk_model=best,
                         name="model",
                         registered_model_name=MODEL_NAME if auc > best_score else None,
+                        serialization_format="cloudpickle",
                     )
 
                 if auc > best_score:
