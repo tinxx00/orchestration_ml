@@ -36,11 +36,8 @@ jobs:
       - name: Types (mypy)
         run: uv run mypy src/heart
 
-      # - name: Tests (pytest)
-      #   run: uv run pytest
-
-      - name: Tests (temporairement desactives)
-        run: echo "Tests non actives pour le moment"
+      - name: Tests (pytest)
+        run: uv run pytest
 
   train:
     name: Entrainement (Continuous Training)
