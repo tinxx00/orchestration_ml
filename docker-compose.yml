@@ -72,5 +72,39 @@ services:
       - API_PUBLIC_URL=${API_PUBLIC_URL:-http://localhost:8000}
       - MLFLOW_PUBLIC_URL=${MLFLOW_PUBLIC_URL:-http://localhost:5000}
 
+  # --------------------------------------------------------------------------
+  # Airflow (scheduler + webserver dans un seul conteneur, SQLite)
+  # --------------------------------------------------------------------------
+  airflow:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.airflow
+    ports:
+      - "8080:8080"
+    depends_on:
+      - api
+      - mlflow
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__WEBSERVER__EXPOSE_CONFIG=True
+      - PYTHONPATH=/opt/airflow/src
+      - API_URL=http://api:8000
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./src:/opt/airflow/src
+      - ./data:/opt/airflow/data
+      - ./models:/opt/airflow/models
+      - airflow_data:/opt/airflow
+    command: >
+      bash -c "
+      airflow db migrate &&
+      airflow users create --username admin --password admin
+        --firstname Admin --lastname User --role Admin --email admin@example.com || true &&
+      airflow scheduler & exec airflow webserver
+      "
+
 volumes:
   mlflow_data:
+  airflow_data:
