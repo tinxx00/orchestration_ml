@@ -60,7 +60,7 @@ def train(c: float = C, max_iter: int = MAX_ITER) -> dict[str, float]:
 
         mlflow.log_params({"c": c, "max_iter": max_iter, "model": "logreg"})
         mlflow.log_metrics(metrics)
-        mlflow.sklearn.log_model(model, name="model")
+        mlflow.sklearn.log_model(sk_model=model, artifact_path="model")
 
         MODELS_DIR.mkdir(parents=True, exist_ok=True)
         model_path = MODELS_DIR / "model.joblib"
