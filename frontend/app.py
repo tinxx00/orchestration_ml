@@ -1,4 +1,4 @@
-"""Frontend Streamlit — Heart Disease Classifier (dashboard enrichi)."""
+"""Frontend Streamlit — Heart Disease Classifier (thème clair pastel)."""
 from __future__ import annotations
 
 import os
@@ -20,6 +20,16 @@ AIRFLOW_USER     = os.getenv("AIRFLOW_USER",     "admin")
 AIRFLOW_PASSWORD = os.getenv("AIRFLOW_PASSWORD", "admin")
 RETRAIN_DAG_ID   = os.getenv("RETRAIN_DAG_ID",   "model_retraining")
 
+# ─── Palette pastel ──────────────────────────────────────────────────────────────
+INK      = "#3a3f55"   # texte principal
+MUTED    = "#8b91a8"   # texte secondaire
+LAVENDER = "#8b7fd4"   # accent principal (violet pastel)
+MINT     = "#6cc8a0"   # vert menthe (sain / succès)
+CORAL    = "#e88a8a"   # corail (risque / échec)
+AMBER    = "#e9b872"   # ambre (intermédiaire)
+SKY      = "#7eb6e8"   # bleu pastel
+CARD_BD  = "#ececf5"   # bordure carte
+
 # ─── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Heart Disease Classifier",
@@ -31,71 +41,113 @@ st.set_page_config(
 # ─── CSS ──────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-[data-testid="stAppViewContainer"] { background: #0f1117; }
+[data-testid="stAppViewContainer"] { background: #f5f6fc; }
+[data-testid="stHeader"] { background: transparent; }
+.block-container { padding-top: 2.2rem; }
+
 [data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #13162b 0%, #0f1117 100%);
-    border-right: 1px solid #2d3561;
+    background: linear-gradient(180deg, #efeafd 0%, #fdeaf1 100%);
+    border-right: 1px solid #ececf5;
 }
+[data-testid="stSidebar"] * { color: #4a4f6a; }
 
+h1, h2, h3, h4 { color: #3a3f55; }
+
+/* Hero */
 .hero-card {
-    background: linear-gradient(135deg, #1a1f3c 0%, #251530 50%, #1a2538 100%);
-    border: 1px solid #3a4070;
-    border-radius: 18px;
-    padding: 1.8rem 2.2rem;
-    margin-bottom: 1.5rem;
+    background: linear-gradient(120deg, #e8e3fb 0%, #f3e6f5 45%, #e2eefb 100%);
+    border: 1px solid #e3ddf6;
+    border-radius: 22px;
+    padding: 2rem 2.4rem;
+    margin-bottom: 1.6rem;
+    box-shadow: 0 6px 24px rgba(139,127,212,0.10);
 }
-.hero-card h1 { margin: 0; font-size: 1.9rem; color: #e2e8f0; }
-.hero-card p  { color: #8896b3; margin: 0.4rem 0 0 0; font-size: 0.95rem; }
+.hero-card h1 { margin: 0; font-size: 2rem; color: #4a4566; font-weight: 800; }
+.hero-card p  { color: #7a7298; margin: 0.5rem 0 0 0; font-size: 0.98rem; }
 
+/* KPI cards */
 .kpi-card {
-    background: #1a1f3c;
-    border: 1px solid #2d3561;
-    border-radius: 14px;
-    padding: 1.2rem 1rem;
+    background: #ffffff;
+    border: 1px solid #ececf5;
+    border-radius: 16px;
+    padding: 1.3rem 1rem;
     text-align: center;
+    box-shadow: 0 3px 14px rgba(140,130,200,0.07);
 }
-.kpi-value { font-size: 2rem; font-weight: 700; color: #e2e8f0; }
-.kpi-label { font-size: 0.75rem; color: #6b7fa8; text-transform: uppercase;
-             letter-spacing: 0.08em; margin-top: 0.25rem; }
+.kpi-value { font-size: 2.1rem; font-weight: 800; color: #3a3f55; line-height: 1.1; }
+.kpi-label { font-size: 0.72rem; color: #9aa0b5; text-transform: uppercase;
+             letter-spacing: 0.09em; margin-top: 0.3rem; }
 
+/* Résultat */
 .result-danger {
-    background: linear-gradient(135deg, #2d1515 0%, #1f0f0f 100%);
-    border: 2px solid #e53e3e; border-radius: 18px;
+    background: linear-gradient(135deg, #fdeced 0%, #fce4ef 100%);
+    border: 2px solid #f3b4b4; border-radius: 20px;
     padding: 1.6rem; text-align: center; margin: 0.5rem 0;
 }
 .result-safe {
-    background: linear-gradient(135deg, #0d2918 0%, #091d11 100%);
-    border: 2px solid #38a169; border-radius: 18px;
+    background: linear-gradient(135deg, #e7f7ef 0%, #e4f4f6 100%);
+    border: 2px solid #aee0c8; border-radius: 20px;
     padding: 1.6rem; text-align: center; margin: 0.5rem 0;
 }
 .result-proba { font-size: 3rem; font-weight: 800; line-height: 1.1; }
-.result-sub   { color: #a0aec0; font-size: 0.9rem; margin-top: 0.3rem; }
+.result-sub   { color: #8b91a8; font-size: 0.9rem; margin-top: 0.3rem; }
 
+/* Flags features */
 .feat-risk {
-    background: #2d1515; border-left: 3px solid #e53e3e;
-    border-radius: 6px; padding: 6px 12px; margin: 3px 0;
-    font-size: 0.87rem; color: #fc8181;
+    background: #fdecec; border-left: 4px solid #e88a8a;
+    border-radius: 8px; padding: 7px 13px; margin: 4px 0;
+    font-size: 0.87rem; color: #c0656a;
 }
 .feat-ok {
-    background: #0d2918; border-left: 3px solid #38a169;
-    border-radius: 6px; padding: 6px 12px; margin: 3px 0;
-    font-size: 0.87rem; color: #68d391;
+    background: #e8f6ef; border-left: 4px solid #6cc8a0;
+    border-radius: 8px; padding: 7px 13px; margin: 4px 0;
+    font-size: 0.87rem; color: #3f9573;
 }
 
-.badge-on  { background:#1a3a28; color:#48bb78; border-radius:20px; padding:3px 12px; font-size:0.78rem; font-weight:600; }
-.badge-off { background:#3d1515; color:#fc8181; border-radius:20px; padding:3px 12px; font-size:0.78rem; font-weight:600; }
+/* Badges */
+.badge-on  { background:#e3f6ec; color:#3f9573; border-radius:20px; padding:3px 13px; font-size:0.78rem; font-weight:700; }
+.badge-off { background:#fdecec; color:#c0656a; border-radius:20px; padding:3px 13px; font-size:0.78rem; font-weight:700; }
 
+/* Service / endpoint / run rows */
+.soft-row {
+    background:#ffffff; border:1px solid #ececf5; border-radius:12px;
+    padding:0.75rem 1.2rem; margin:0.45rem 0; display:flex;
+    align-items:center; gap:1.1rem;
+    box-shadow: 0 2px 10px rgba(140,130,200,0.05);
+}
+
+/* Form */
 div[data-testid="stForm"] {
-    background: #13162b; border: 1px solid #2d3561; border-radius: 16px; padding: 1.4rem;
+    background: #ffffff; border: 1px solid #ececf5; border-radius: 18px;
+    padding: 1.6rem; box-shadow: 0 4px 18px rgba(140,130,200,0.07);
 }
+
+/* Tabs */
+button[data-baseweb="tab"] { font-size: 0.95rem; }
+[data-testid="stForm"] button[kind="formSubmit"],
+.stButton button {
+    background: linear-gradient(120deg,#8b7fd4 0%, #b39ae0 100%);
+    color: #ffffff; border: none; border-radius: 12px; font-weight: 700;
+}
+.stButton button:hover { filter: brightness(1.05); }
 </style>
 """, unsafe_allow_html=True)
+
+# Style commun des graphiques matplotlib (thème clair)
+plt.rcParams.update({
+    "figure.facecolor": "#ffffff",
+    "axes.facecolor":   "#ffffff",
+    "text.color":       INK,
+    "axes.labelcolor":  MUTED,
+    "xtick.color":      MUTED,
+    "ytick.color":      MUTED,
+})
 
 # ─── Session state ─────────────────────────────────────────────────────────────
 if "history" not in st.session_state:
     st.session_state.history: list[dict] = []
 
-# ─── Helpers ───────────────────────────────────────────────────────────────────
+# ─── Helpers API ─────────────────────────────────────────────────────────────────
 def get_api_health() -> tuple[bool, dict]:
     try:
         r = httpx.get(f"{API_URL}/health", timeout=3.0)
@@ -116,8 +168,8 @@ def get_model_info() -> dict:
 
 def make_gauge(proba: float) -> plt.Figure:
     fig, ax = plt.subplots(figsize=(6, 3.6))
-    fig.patch.set_facecolor("#13162b")
-    ax.set_facecolor("#13162b")
+    fig.patch.set_facecolor("#ffffff")
+    ax.set_facecolor("#ffffff")
     ax.set_xlim(-1.55, 1.55)
     ax.set_ylim(-0.25, 1.35)
     ax.set_aspect("equal")
@@ -129,34 +181,34 @@ def make_gauge(proba: float) -> plt.Figure:
         xi, yi = r_in  * np.cos(theta), r_in  * np.sin(theta)
         ax.fill(np.concatenate([xo, xi[::-1]]), np.concatenate([yo, yi[::-1]]), color=color)
 
-    arc_band(0, np.pi, 0.55, 1.0, "#1e2540")           # fond
-    arc_band(np.pi * 0.6, np.pi, 0.57, 0.98, "#276749") # vert  0–40 %
-    arc_band(np.pi * 0.3, np.pi * 0.6, 0.57, 0.98, "#c05621") # orange 40–70 %
-    arc_band(0, np.pi * 0.3, 0.57, 0.98, "#9b2c2c")     # rouge  70–100 %
+    arc_band(0, np.pi, 0.55, 1.0, "#eef0f8")                  # fond
+    arc_band(np.pi * 0.6, np.pi, 0.57, 0.98, "#a8ddc0")       # vert  0–40 %
+    arc_band(np.pi * 0.3, np.pi * 0.6, 0.57, 0.98, "#f5d6a8") # ambre 40–70 %
+    arc_band(0, np.pi * 0.3, 0.57, 0.98, "#f3b0b0")           # rouge 70–100 %
 
     for pct in [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]:
         angle = np.pi * (1 - pct)
         ax.plot([np.cos(angle), 1.11 * np.cos(angle)],
-                [np.sin(angle), 1.11 * np.sin(angle)], color="#a0aec0", lw=1.5)
+                [np.sin(angle), 1.11 * np.sin(angle)], color="#c4c9dc", lw=1.5)
         ax.text(1.25 * np.cos(angle), 1.25 * np.sin(angle), f"{pct:.0%}",
-                ha="center", va="center", fontsize=7.5, color="#a0aec0")
+                ha="center", va="center", fontsize=7.5, color=MUTED)
 
     needle = np.pi * (1 - proba)
     ax.annotate("", xy=(0.86 * np.cos(needle), 0.86 * np.sin(needle)),
                 xytext=(0, 0),
-                arrowprops=dict(arrowstyle="-|>", color="white", lw=2.2,
+                arrowprops=dict(arrowstyle="-|>", color="#4a4f6a", lw=2.4,
                                 mutation_scale=18))
-    ax.add_patch(plt.Circle((0, 0), 0.065, color="#e2e8f0", zorder=5))
+    ax.add_patch(plt.Circle((0, 0), 0.065, color="#4a4f6a", zorder=5))
 
-    color_score = "#e53e3e" if proba >= 0.5 else "#38a169"
+    color_score = CORAL if proba >= 0.5 else MINT
     ax.text(0, 0.32, f"{proba:.1%}", ha="center", va="center",
             fontsize=30, fontweight="bold", color=color_score)
     ax.text(0, 0.16, "probabilité de risque", ha="center", va="center",
-            fontsize=9, color="#8896b3")
+            fontsize=9, color=MUTED)
     ax.text(-1.38, -0.12, "Faible", ha="center", fontsize=9,
-            color="#68d391", fontweight="bold")
+            color="#3f9573", fontweight="bold")
     ax.text( 1.38, -0.12, "Élevé",  ha="center", fontsize=9,
-            color="#fc8181", fontweight="bold")
+            color="#c0656a", fontweight="bold")
 
     fig.tight_layout(pad=0.3)
     return fig
@@ -188,50 +240,11 @@ def get_mlflow_health() -> tuple[bool, str]:
     data = mlflow_get("/health")
     if data is not None:
         return True, "En ligne"
-    # try root
     try:
         r = httpx.get(MLFLOW_URL, timeout=4.0)
         return r.status_code < 500, "En ligne"
     except Exception:
         return False, "Hors ligne"
-
-
-def get_experiments() -> list[dict]:
-    data = mlflow_get("/api/2.0/mlflow/experiments/search?max_results=10")
-    if data:
-        return data.get("experiments", [])
-    return []
-
-
-def get_recent_runs(experiment_id: str, n: int = 8) -> list[dict]:
-    try:
-        r = httpx.post(
-            f"{MLFLOW_URL}/api/2.0/mlflow/runs/search",
-            json={
-                "experiment_ids": [experiment_id],
-                "max_results": n,
-                "order_by": ["attributes.start_time DESC"],
-            },
-            timeout=4.0,
-        )
-        r.raise_for_status()
-        return r.json().get("runs", [])
-    except Exception:
-        return []
-
-
-def get_registered_models() -> list[dict]:
-    data = mlflow_get("/api/2.0/mlflow/registered-models/list")
-    if data:
-        return data.get("registered_models", [])
-    return []
-
-
-def get_model_versions(name: str) -> list[dict]:
-    data = mlflow_get(f"/api/2.0/mlflow/model-versions/search?filter=name%3D%27{name}%27")
-    if data:
-        return data.get("model_versions", [])
-    return []
 
 
 # ─── Airflow helpers ─────────────────────────────────────────────────────────────
@@ -252,8 +265,7 @@ def get_airflow_health() -> bool:
     data = airflow_get("/health")
     if not data:
         return False
-    meta = data.get("metadatabase", {}).get("status")
-    return meta == "healthy"
+    return data.get("metadatabase", {}).get("status") == "healthy"
 
 
 def get_dag_runs(dag_id: str, n: int = 10) -> list[dict]:
@@ -286,6 +298,16 @@ def _duration(start: str | None, end: str | None) -> str:
         return f"{secs // 60}m {secs % 60}s" if secs >= 60 else f"{secs}s"
     except Exception:
         return "-"
+
+
+def kpi(col, value, label, color=INK) -> None:
+    with col:
+        st.markdown(
+            f'<div class="kpi-card">'
+            f'<div class="kpi-value" style="color:{color};">{value}</div>'
+            f'<div class="kpi-label">{label}</div></div>',
+            unsafe_allow_html=True,
+        )
 
 
 # ─── Sidebar ───────────────────────────────────────────────────────────────────
@@ -326,7 +348,9 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ─── Tabs ──────────────────────────────────────────────────────────────────────
-tab1, tab2, tab3, tab4 = st.tabs(["🔍  Prédiction", "📋  Historique", "📊  Statistiques", "🔧  Infrastructure"])
+tab1, tab2, tab3, tab4 = st.tabs(
+    ["🔍  Prédiction", "📋  Historique", "📊  Statistiques", "🔧  Infrastructure"]
+)
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # TAB 1 — Prédiction
@@ -369,7 +393,7 @@ with tab1:
 
         if not st.session_state.history:
             st.markdown("""
-            <div style="text-align:center;color:#4a5568;padding:3rem 1rem;">
+            <div style="text-align:center;color:#b3b8cc;padding:3rem 1rem;">
                 <div style="font-size:3.5rem;">🫀</div>
                 <p style="margin-top:1rem;">
                     Remplissez le formulaire et lancez une prédiction.
@@ -405,10 +429,10 @@ with tab1:
                     if label == 1:
                         st.markdown(f"""
                         <div class="result-danger">
-                            <div style="font-size:1.3rem;font-weight:700;color:#fc8181;">
+                            <div style="font-size:1.3rem;font-weight:700;color:#c0656a;">
                                 ⚠️ Risque élevé détecté
                             </div>
-                            <div class="result-proba" style="color:#e53e3e;">{proba:.1%}</div>
+                            <div class="result-proba" style="color:#e88a8a;">{proba:.1%}</div>
                             <div class="result-sub">probabilité de maladie cardiaque</div>
                         </div>
                         """, unsafe_allow_html=True)
@@ -416,10 +440,10 @@ with tab1:
                     else:
                         st.markdown(f"""
                         <div class="result-safe">
-                            <div style="font-size:1.3rem;font-weight:700;color:#68d391;">
+                            <div style="font-size:1.3rem;font-weight:700;color:#3f9573;">
                                 ✅ Risque faible
                             </div>
-                            <div class="result-proba" style="color:#38a169;">{proba:.1%}</div>
+                            <div class="result-proba" style="color:#6cc8a0;">{proba:.1%}</div>
                             <div class="result-sub">probabilité de maladie cardiaque</div>
                         </div>
                         """, unsafe_allow_html=True)
@@ -468,22 +492,12 @@ with tab3:
         at_risk = int((df_s["label"] == 1).sum())
         safe    = total - at_risk
         avg_p   = float(df_s["probability"].mean())
-        max_p   = float(df_s["probability"].max())
 
         k1, k2, k3, k4 = st.columns(4)
-        for col, val, label_kpi, color in [
-            (k1, total,   "Total patients",  "#e2e8f0"),
-            (k2, at_risk, "À risque",        "#e53e3e"),
-            (k3, safe,    "Sains",           "#38a169"),
-            (k4, f"{avg_p:.0%}", "Risque moyen", "#7c8db5"),
-        ]:
-            with col:
-                st.markdown(
-                    f'<div class="kpi-card">'
-                    f'<div class="kpi-value" style="color:{color};">{val}</div>'
-                    f'<div class="kpi-label">{label_kpi}</div></div>',
-                    unsafe_allow_html=True,
-                )
+        kpi(k1, total,          "Total patients", INK)
+        kpi(k2, at_risk,        "À risque",       CORAL)
+        kpi(k3, safe,           "Sains",          MINT)
+        kpi(k4, f"{avg_p:.0%}", "Risque moyen",   LAVENDER)
 
         st.markdown("<br>", unsafe_allow_html=True)
         c1, c2 = st.columns(2)
@@ -491,67 +505,60 @@ with tab3:
         with c1:
             st.markdown("#### Répartition des résultats")
             fig, ax = plt.subplots(figsize=(5, 4))
-            fig.patch.set_facecolor("#13162b")
-            ax.set_facecolor("#13162b")
             if at_risk == 0:
-                sizes, labels_pie = [safe], ["Sains"]
-                colors_pie = ["#38a169"]
+                sizes, labels_pie, colors_pie = [safe], ["Sains"], [MINT]
             elif safe == 0:
-                sizes, labels_pie = [at_risk], ["À risque"]
-                colors_pie = ["#e53e3e"]
+                sizes, labels_pie, colors_pie = [at_risk], ["À risque"], [CORAL]
             else:
                 sizes, labels_pie = [at_risk, safe], ["À risque", "Sains"]
-                colors_pie = ["#e53e3e", "#38a169"]
+                colors_pie = [CORAL, MINT]
             wedges, _, autotexts = ax.pie(
                 sizes, labels=labels_pie, colors=colors_pie,
                 autopct="%1.0f%%", startangle=90,
-                textprops={"color": "white", "fontsize": 11},
+                textprops={"color": "#ffffff", "fontsize": 11},
+                wedgeprops={"edgecolor": "#ffffff", "linewidth": 2},
             )
             for at in autotexts:
                 at.set_fontweight("bold")
-            ax.set_title("Répartition", color="white", fontsize=13, pad=12)
+            ax.set_title("Répartition", color=INK, fontsize=13, pad=12)
             st.pyplot(fig, use_container_width=True)
             plt.close(fig)
 
         with c2:
             st.markdown("#### Probabilité par patient")
             fig, ax = plt.subplots(figsize=(5, 4))
-            fig.patch.set_facecolor("#13162b")
-            ax.set_facecolor("#1a1f3c")
+            ax.set_facecolor("#faf9ff")
             probas = df_s["probability"].values
-            bar_colors = ["#e53e3e" if p >= 0.5 else "#38a169" for p in probas]
-            ax.bar(range(len(probas)), probas, color=bar_colors, alpha=0.85, edgecolor="none")
-            ax.axhline(0.5, color="#a0aec0", linestyle="--", lw=1.2, alpha=0.8)
+            bar_colors = [CORAL if p >= 0.5 else MINT for p in probas]
+            ax.bar(range(len(probas)), probas, color=bar_colors, edgecolor="none")
+            ax.axhline(0.5, color="#c4c9dc", linestyle="--", lw=1.2)
             ax.text(len(probas) - 0.5, 0.52, "seuil 50 %",
-                    color="#a0aec0", fontsize=8, ha="right")
+                    color=MUTED, fontsize=8, ha="right")
             ax.set_ylim(0, 1)
-            ax.set_xlabel("Patient #", color="#a0aec0", fontsize=9)
-            ax.set_ylabel("Probabilité", color="#a0aec0", fontsize=9)
-            ax.tick_params(colors="#a0aec0")
+            ax.set_xlabel("Patient #", fontsize=9)
+            ax.set_ylabel("Probabilité", fontsize=9)
             for spine in ax.spines.values():
-                spine.set_edgecolor("#2d3561")
-            ax.set_title("Évolution des probabilités", color="white", fontsize=13, pad=12)
+                spine.set_edgecolor("#e5e7f0")
+            ax.set_title("Évolution des probabilités", color=INK, fontsize=13, pad=12)
             st.pyplot(fig, use_container_width=True)
             plt.close(fig)
 
         if len(df_s) >= 3:
             st.markdown("#### Corrélation Âge / Probabilité de risque")
             fig, ax = plt.subplots(figsize=(10, 3.5))
-            fig.patch.set_facecolor("#13162b")
-            ax.set_facecolor("#1a1f3c")
+            ax.set_facecolor("#faf9ff")
             sc = ax.scatter(df_s["age"], df_s["probability"],
                             c=df_s["probability"], cmap="RdYlGn_r",
-                            s=90, alpha=0.85, edgecolors="none", vmin=0, vmax=1)
+                            s=110, alpha=0.9, edgecolors="#ffffff",
+                            linewidths=1.2, vmin=0, vmax=1)
             cb = plt.colorbar(sc, ax=ax)
-            cb.set_label("Probabilité", color="#a0aec0", fontsize=9)
-            cb.ax.yaxis.set_tick_params(color="#a0aec0")
-            plt.setp(cb.ax.yaxis.get_ticklabels(), color="#a0aec0")
-            ax.set_xlabel("Âge", color="#a0aec0")
-            ax.set_ylabel("Probabilité de risque", color="#a0aec0")
-            ax.tick_params(colors="#a0aec0")
+            cb.set_label("Probabilité", color=MUTED, fontsize=9)
+            plt.setp(cb.ax.yaxis.get_ticklabels(), color=MUTED)
+            ax.set_xlabel("Âge")
+            ax.set_ylabel("Probabilité de risque")
             for spine in ax.spines.values():
-                spine.set_edgecolor("#2d3561")
-            ax.set_title("Âge vs Risque cardiaque", color="white", fontsize=13, pad=10)
+                spine.set_edgecolor("#e5e7f0")
+            ax.set_title("Âge vs Risque cardiaque", color=INK, fontsize=13, pad=10)
             st.pyplot(fig, use_container_width=True)
             plt.close(fig)
 
@@ -561,55 +568,48 @@ with tab3:
 with tab4:
     st.markdown("### 🔧 État des services")
 
-    # ── Services status ────────────────────────────────────────────────────────
-    api_ok2, _   = get_api_health()
-    mlf_ok, _    = get_mlflow_health()
-    airflow_ok   = get_airflow_health()
-    info2        = get_model_from_info = get_model_info() if api_ok2 else {}
+    api_ok2, _ = get_api_health()
+    mlf_ok, _  = get_mlflow_health()
+    airflow_ok = get_airflow_health()
+    info2      = get_model_info() if api_ok2 else {}
 
     s1, s2, s3, s4 = st.columns(4)
 
     def svc_card(col, icon, name, ok, detail, url):
         with col:
-            color  = "#38a169" if ok else "#e53e3e"
+            color  = MINT if ok else CORAL
             status = "● En ligne" if ok else "● Hors ligne"
             st.markdown(f"""
             <div class="kpi-card" style="text-align:left; padding:1.2rem 1.4rem;">
                 <div style="font-size:1.8rem;">{icon}</div>
-                <div style="font-weight:700; font-size:1rem; margin:0.4rem 0 0.2rem;">
+                <div style="font-weight:700; font-size:1rem; margin:0.4rem 0 0.2rem;
+                            color:#3a3f55;">
                     {name}
                 </div>
-                <div style="color:{color}; font-size:0.82rem; font-weight:600;">
+                <div style="color:{color}; font-size:0.82rem; font-weight:700;">
                     {status}
                 </div>
-                <div style="color:#6b7fa8; font-size:0.78rem; margin-top:0.3rem;">
+                <div style="color:#9aa0b5; font-size:0.78rem; margin-top:0.3rem;">
                     {detail}
                 </div>
                 <div style="margin-top:0.6rem;">
                     <a href="{url}" target="_blank"
-                       style="color:#7c8db5; font-size:0.78rem;">
+                       style="color:#8b7fd4; font-size:0.78rem; font-weight:600;">
                         🔗 {url}
                     </a>
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
-    svc_card(s1, "🤖", "API FastAPI",
-             api_ok2,
-             f"modèle : {info2.get('model_name','-')}",
-             f"{API_PUBLIC_URL}/docs")
-    svc_card(s2, "📊", "MLflow Tracking",
-             mlf_ok,
-             "expériences & model registry",
-             MLFLOW_PUBLIC_URL)
-    svc_card(s3, "🫀", "Frontend Streamlit",
-             True,
+    svc_card(s1, "🤖", "API FastAPI", api_ok2,
+             f"modèle : {info2.get('model_name','-')}", f"{API_PUBLIC_URL}/docs")
+    svc_card(s2, "📊", "MLflow Tracking", mlf_ok,
+             "expériences & model registry", MLFLOW_PUBLIC_URL)
+    svc_card(s3, "🫀", "Frontend Streamlit", True,
              "cette interface",
              API_PUBLIC_URL.replace(":8000", ":8502").replace("/docs", ""))
-    svc_card(s4, "🌀", "Airflow",
-             airflow_ok,
-             "orchestration des pipelines",
-             AIRFLOW_PUBLIC_URL)
+    svc_card(s4, "🌀", "Airflow", airflow_ok,
+             "orchestration des pipelines", AIRFLOW_PUBLIC_URL)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -622,18 +622,16 @@ with tab4:
         ("GET",  "/docs",       "Documentation Swagger interactive"),
     ]
     for method, path, desc in endpoints:
-        m_color = "#38a169" if method == "GET" else "#3182ce"
+        m_color = MINT if method == "GET" else SKY
         st.markdown(f"""
-        <div style="background:#1a1f3c; border:1px solid #2d3561; border-radius:10px;
-                    padding:0.7rem 1.2rem; margin:0.4rem 0; display:flex;
-                    align-items:center; gap:1rem;">
+        <div class="soft-row">
             <span style="background:{m_color}22; color:{m_color}; font-weight:700;
                          font-size:0.78rem; padding:3px 10px; border-radius:6px;
                          min-width:48px; text-align:center;">{method}</span>
-            <span style="color:#e2e8f0; font-family:monospace; font-size:0.9rem;">
+            <span style="color:#3a3f55; font-family:monospace; font-size:0.9rem;">
                 {API_PUBLIC_URL}{path}
             </span>
-            <span style="color:#6b7fa8; font-size:0.85rem; margin-left:auto;">
+            <span style="color:#9aa0b5; font-size:0.85rem; margin-left:auto;">
                 {desc}
             </span>
         </div>
@@ -667,44 +665,33 @@ with tab4:
             st.info("Aucun ré-entraînement enregistré pour le moment.")
         else:
             state_badge = {
-                "success": ("#38a169", "✅ Réussi"),
-                "running": ("#3182ce", "🔄 En cours"),
-                "failed":  ("#e53e3e", "❌ Échoué"),
-                "queued":  ("#d69e2e", "⏳ En file"),
+                "success": (MINT,  "✅ Réussi"),
+                "running": (SKY,   "🔄 En cours"),
+                "failed":  (CORAL, "❌ Échoué"),
+                "queued":  (AMBER, "⏳ En file"),
             }
             n_ok = sum(1 for r in runs if r.get("state") == "success")
             k1, k2 = st.columns(2)
-            with k1:
-                st.markdown(f"""<div class="kpi-card">
-                    <div class="kpi-value">{len(runs)}</div>
-                    <div class="kpi-label">Runs affichés</div></div>""",
-                    unsafe_allow_html=True)
-            with k2:
-                st.markdown(f"""<div class="kpi-card">
-                    <div class="kpi-value" style="color:#38a169;">{n_ok}</div>
-                    <div class="kpi-label">Réussis</div></div>""",
-                    unsafe_allow_html=True)
+            kpi(k1, len(runs), "Runs affichés", INK)
+            kpi(k2, n_ok,      "Réussis",       MINT)
 
             st.markdown("<br>", unsafe_allow_html=True)
 
             for r in runs:
                 state = r.get("state", "")
-                color, label = state_badge.get(state, ("#6b7fa8", state or "-"))
+                color, label = state_badge.get(state, (MUTED, state or "-"))
                 trigger = (r.get("run_type") or "").replace("_", " ")
                 st.markdown(f"""
-                <div style="background:#1a1f3c; border:1px solid #2d3561;
-                            border-left:4px solid {color}; border-radius:10px;
-                            padding:0.7rem 1.2rem; margin:0.4rem 0; display:flex;
-                            align-items:center; gap:1.2rem;">
+                <div class="soft-row" style="border-left:4px solid {color};">
                     <span style="color:{color}; font-weight:700; font-size:0.85rem;
                                  min-width:90px;">{label}</span>
-                    <span style="color:#e2e8f0; font-size:0.88rem;">
+                    <span style="color:#3a3f55; font-size:0.88rem;">
                         🕒 {_fmt_dt(r.get('start_date'))}
                     </span>
-                    <span style="color:#8896b3; font-size:0.82rem;">
+                    <span style="color:#8b91a8; font-size:0.82rem;">
                         ⏱️ {_duration(r.get('start_date'), r.get('end_date'))}
                     </span>
-                    <span style="color:#6b7fa8; font-size:0.78rem; margin-left:auto;">
+                    <span style="color:#9aa0b5; font-size:0.78rem; margin-left:auto;">
                         {trigger}
                     </span>
                 </div>
@@ -713,15 +700,16 @@ with tab4:
             st.markdown(
                 f"<div style='margin-top:0.6rem;'>"
                 f"<a href='{AIRFLOW_PUBLIC_URL}/dags/{RETRAIN_DAG_ID}/grid' "
-                f"target='_blank' style='color:#7c8db5; font-size:0.82rem;'>"
-                f"🔗 Ouvrir le DAG dans Airflow</a></div>",
+                f"target='_blank' style='color:#8b7fd4; font-size:0.82rem; "
+                f"font-weight:600;'>🔗 Ouvrir le DAG dans Airflow</a></div>",
                 unsafe_allow_html=True,
             )
 
 
 st.markdown(
-    f"<hr style='border-color:#2d3561; margin-top:2rem;'>"
-    f"<p style='text-align:center; color:#3d4f6e; font-size:0.78rem;'>"
-    f"API : {API_PUBLIC_URL} &nbsp;|&nbsp; MLflow : {MLFLOW_PUBLIC_URL}</p>",
+    f"<hr style='border-color:#ececf5; margin-top:2rem;'>"
+    f"<p style='text-align:center; color:#b3b8cc; font-size:0.78rem;'>"
+    f"API : {API_PUBLIC_URL} &nbsp;|&nbsp; MLflow : {MLFLOW_PUBLIC_URL} "
+    f"&nbsp;|&nbsp; Airflow : {AIRFLOW_PUBLIC_URL}</p>",
     unsafe_allow_html=True,
 )
