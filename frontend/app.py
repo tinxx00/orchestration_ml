@@ -340,17 +340,95 @@ with st.sidebar:
 
 # ─── Hero ──────────────────────────────────────────────────────────────────────
 st.markdown("""
-<div class="hero-card">
+<div class="hero-card" style="text-align:center;">
   <h1>🫀 Heart Disease Classifier</h1>
   <p>Estimation du risque de maladie cardiaque à partir de données cliniques ·
      Modèle ML entraîné sur Heart Disease UCI (303 patients)</p>
+  <p style="margin-top:0.7rem; font-size:0.85rem; color:#9a8fc4; font-weight:600;">
+     Projet MLOps · réalisé par <b>Tinhinane ISSAD</b></p>
 </div>
 """, unsafe_allow_html=True)
 
 # ─── Tabs ──────────────────────────────────────────────────────────────────────
-tab1, tab2, tab3, tab4 = st.tabs(
-    ["🔍  Prédiction", "📋  Historique", "📊  Statistiques", "🔧  Infrastructure"]
+tab0, tab1, tab2, tab3, tab4 = st.tabs(
+    ["📖  Contexte métier", "🔍  Prédiction", "📋  Historique",
+     "📊  Statistiques", "🔧  Infrastructure"]
 )
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# TAB 0 — Contexte métier
+# ═══════════════════════════════════════════════════════════════════════════════
+with tab0:
+    st.markdown("### 📖 Contexte métier & problématique")
+
+    st.markdown("""
+<div class="kpi-card" style="text-align:left; padding:1.6rem 2rem;">
+  <h4 style="margin-top:0;">🫀 Le problème</h4>
+  <p style="color:#5a6078; font-size:0.95rem; line-height:1.6;">
+    Les <b>maladies cardiovasculaires</b> sont la première cause de mortalité dans
+    le monde (environ 18 millions de décès par an selon l'OMS). Un dépistage
+    <b>précoce</b> du risque permet d'orienter les patients vers des examens
+    approfondis et de réduire considérablement la mortalité. Or, l'évaluation
+    repose souvent sur l'expérience du praticien et sur de nombreux examens
+    cliniques dont l'interprétation conjointe est complexe.
+  </p>
+</div>
+""", unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    c1, c2 = st.columns(2)
+    with c1:
+        st.markdown("""
+<div class="kpi-card" style="text-align:left; padding:1.4rem 1.6rem; height:100%;">
+  <h4 style="margin-top:0;">🎯 L'objectif</h4>
+  <p style="color:#5a6078; font-size:0.92rem; line-height:1.55;">
+    Construire un <b>outil d'aide à la décision</b> qui estime, à partir de
+    13 indicateurs cliniques simples (âge, tension, cholestérol, ECG…), la
+    <b>probabilité qu'un patient présente une maladie cardiaque</b>.
+    Il ne remplace pas le médecin : il <b>priorise</b> et <b>alerte</b>.
+  </p>
+</div>
+""", unsafe_allow_html=True)
+    with c2:
+        st.markdown("""
+<div class="kpi-card" style="text-align:left; padding:1.4rem 1.6rem; height:100%;">
+  <h4 style="margin-top:0;">📊 Les données</h4>
+  <p style="color:#5a6078; font-size:0.92rem; line-height:1.55;">
+    Jeu de données <b>Heart Disease UCI (Cleveland)</b> : 303 patients,
+    13 variables cliniques + une cible binaire
+    (<b>0 = sain</b>, <b>1 = maladie</b>). C'est un jeu de référence
+    largement utilisé en apprentissage automatique médical.
+  </p>
+</div>
+""", unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    st.markdown("#### ⚙️ Comment ça marche — la chaîne MLOps")
+    steps = [
+        ("📥", "Données",   "Préparation et nettoyage du jeu Heart Disease UCI."),
+        ("🧠", "Entraînement", "Un modèle scikit-learn apprend à distinguer patients sains / à risque."),
+        ("📊", "MLflow",    "Chaque entraînement est tracé (métriques F1, ROC AUC) et le modèle versionné."),
+        ("🤖", "API",       "Le meilleur modèle est servi via une API FastAPI (/predict)."),
+        ("🫀", "Frontend",  "Cette interface envoie les données patient à l'API et affiche le risque."),
+        ("🌀", "Airflow",   "Le ré-entraînement est orchestré et planifié automatiquement."),
+    ]
+    for icon, title, desc in steps:
+        st.markdown(f"""
+        <div class="soft-row">
+            <span style="font-size:1.4rem;">{icon}</span>
+            <span style="color:#3a3f55; font-weight:700; font-size:0.92rem;
+                         min-width:120px;">{title}</span>
+            <span style="color:#6b7280; font-size:0.88rem;">{desc}</span>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.info(
+        "⚠️ **Avertissement** : cet outil est un projet pédagogique. Il ne constitue "
+        "en aucun cas un dispositif médical et ne doit pas servir à poser un diagnostic réel."
+    )
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # TAB 1 — Prédiction
