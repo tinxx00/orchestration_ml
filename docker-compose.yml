@@ -68,6 +68,7 @@ services:
       - api
     environment:
       - API_URL=http://api:8000
+      - MLFLOW_URL=http://mlflow:5000
 
 volumes:
   mlflow_data:

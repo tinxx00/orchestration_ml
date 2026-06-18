@@ -10,7 +10,8 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-API_URL = os.getenv("API_URL", "http://localhost:8000")
+API_URL    = os.getenv("API_URL",    "http://localhost:8000")
+MLFLOW_URL = os.getenv("MLFLOW_URL", "http://localhost:5000")
 
 # ─── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -165,6 +166,59 @@ def flag_features(p: dict) -> list[tuple[str, str, bool]]:
         ("Angine (exang)", "Oui" if p["exang"] else "Non", p["exang"] == 1),
     ]
 
+
+# ─── MLflow helpers ────────────────────────────────────────────────────────────
+def mlflow_get(path: str) -> dict | None:
+    try:
+        r = httpx.get(f"{MLFLOW_URL}{path}", timeout=4.0)
+        r.raise_for_status()
+        return r.json()
+    except Exception:
+        return None
+
+
+def get_mlflow_health() -> tuple[bool, str]:
+    data = mlflow_get("/health")
+    if data is not None:
+        return True, "En ligne"
+    # try root
+    try:
+        r = httpx.get(MLFLOW_URL, timeout=4.0)
+        return r.status_code < 500, "En ligne"
+    except Exception:
+        return False, "Hors ligne"
+
+
+def get_experiments() -> list[dict]:
+    data = mlflow_get("/api/2.0/mlflow/experiments/search?max_results=10")
+    if data:
+        return data.get("experiments", [])
+    return []
+
+
+def get_recent_runs(experiment_id: str, n: int = 8) -> list[dict]:
+    data = mlflow_get(
+        f"/api/2.0/mlflow/runs/search"
+        f"?experiment_ids={experiment_id}&max_results={n}&order_by=attributes.start_time+DESC"
+    )
+    if data:
+        return data.get("runs", [])
+    return []
+
+
+def get_registered_models() -> list[dict]:
+    data = mlflow_get("/api/2.0/mlflow/registered-models/list")
+    if data:
+        return data.get("registered_models", [])
+    return []
+
+
+def get_model_versions(name: str) -> list[dict]:
+    data = mlflow_get(f"/api/2.0/mlflow/model-versions/search?filter=name%3D%27{name}%27")
+    if data:
+        return data.get("model_versions", [])
+    return []
+
 # ─── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("## 🫀 Heart Classifier")
@@ -203,7 +257,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ─── Tabs ──────────────────────────────────────────────────────────────────────
-tab1, tab2, tab3 = st.tabs(["🔍  Prédiction", "📋  Historique", "📊  Statistiques"])
+tab1, tab2, tab3, tab4 = st.tabs(["🔍  Prédiction", "📋  Historique", "📊  Statistiques", "🔧  Infrastructure"])
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # TAB 1 — Prédiction
@@ -432,9 +486,172 @@ with tab3:
             st.pyplot(fig, use_container_width=True)
             plt.close(fig)
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# TAB 4 — Infrastructure
+# ═══════════════════════════════════════════════════════════════════════════════
+with tab4:
+    st.markdown("### 🔧 État des services")
+
+    # ── Services status ────────────────────────────────────────────────────────
+    api_ok2, _   = get_api_health()
+    mlf_ok, _    = get_mlflow_health()
+    info2        = get_model_from_info = get_model_info() if api_ok2 else {}
+
+    s1, s2, s3 = st.columns(3)
+
+    def svc_card(col, icon, name, ok, detail, url):
+        with col:
+            color  = "#38a169" if ok else "#e53e3e"
+            status = "● En ligne" if ok else "● Hors ligne"
+            st.markdown(f"""
+            <div class="kpi-card" style="text-align:left; padding:1.2rem 1.4rem;">
+                <div style="font-size:1.8rem;">{icon}</div>
+                <div style="font-weight:700; font-size:1rem; margin:0.4rem 0 0.2rem;">
+                    {name}
+                </div>
+                <div style="color:{color}; font-size:0.82rem; font-weight:600;">
+                    {status}
+                </div>
+                <div style="color:#6b7fa8; font-size:0.78rem; margin-top:0.3rem;">
+                    {detail}
+                </div>
+                <div style="margin-top:0.6rem;">
+                    <a href="{url}" target="_blank"
+                       style="color:#7c8db5; font-size:0.78rem;">
+                        🔗 {url}
+                    </a>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    svc_card(s1, "🤖", "API FastAPI",
+             api_ok2,
+             f"modèle : {info2.get('model_name','-')}",
+             f"{API_URL}/docs")
+    svc_card(s2, "📊", "MLflow Tracking",
+             mlf_ok,
+             "expériences & model registry",
+             MLFLOW_URL)
+    svc_card(s3, "🫀", "Frontend Streamlit",
+             True,
+             "cette interface",
+             "http://localhost:8502")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ── API endpoints ──────────────────────────────────────────────────────────
+    st.markdown("### 🤖 API FastAPI — Endpoints")
+    endpoints = [
+        ("GET",  "/health",     "Vérifie que l'API et le modèle sont chargés"),
+        ("POST", "/predict",    "Prédit la probabilité de maladie cardiaque"),
+        ("GET",  "/model-info", "Retourne le nom, alias et source du modèle"),
+        ("GET",  "/docs",       "Documentation Swagger interactive"),
+    ]
+    for method, path, desc in endpoints:
+        m_color = "#38a169" if method == "GET" else "#3182ce"
+        st.markdown(f"""
+        <div style="background:#1a1f3c; border:1px solid #2d3561; border-radius:10px;
+                    padding:0.7rem 1.2rem; margin:0.4rem 0; display:flex;
+                    align-items:center; gap:1rem;">
+            <span style="background:{m_color}22; color:{m_color}; font-weight:700;
+                         font-size:0.78rem; padding:3px 10px; border-radius:6px;
+                         min-width:48px; text-align:center;">{method}</span>
+            <span style="color:#e2e8f0; font-family:monospace; font-size:0.9rem;">
+                {API_URL}{path}
+            </span>
+            <span style="color:#6b7fa8; font-size:0.85rem; margin-left:auto;">
+                {desc}
+            </span>
+        </div>
+        """, unsafe_allow_html=True)
+
+    if api_ok2 and info2:
+        with st.expander("📋 Détails du modèle chargé"):
+            col_a, col_b = st.columns(2)
+            with col_a:
+                st.markdown(f"**Nom** : `{info2.get('model_name', '-')}`")
+                st.markdown(f"**Alias** : `{info2.get('model_alias', '-')}`")
+                st.markdown(f"**Source** : `{info2.get('model_source', '-')}`")
+            with col_b:
+                feats = info2.get("features", {})
+                st.markdown(f"**Features numériques** : {', '.join(feats.get('numeric', []))}")
+                st.markdown(f"**Features catégorielles** : {', '.join(feats.get('categorical', []))}")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ── MLflow ─────────────────────────────────────────────────────────────────
+    st.markdown("### 📊 MLflow — Expériences & Runs")
+
+    if not mlf_ok:
+        st.warning("MLflow inaccessible depuis le frontend.")
+    else:
+        experiments = get_experiments()
+        if not experiments:
+            st.info("Aucune expérience trouvée.")
+        else:
+            exp_names = {e["experiment_id"]: e["name"] for e in experiments}
+            exp_ids   = list(exp_names.keys())
+
+            sel_id = st.selectbox(
+                "Expérience",
+                exp_ids,
+                format_func=lambda eid: f"{exp_names[eid]} (id={eid})",
+            )
+
+            runs = get_recent_runs(sel_id)
+            if not runs:
+                st.info("Aucun run pour cette expérience.")
+            else:
+                rows = []
+                for run in runs:
+                    info_r   = run.get("info", {})
+                    metrics  = run.get("data", {}).get("metrics", {})
+                    params   = run.get("data", {}).get("params", {})
+                    rows.append({
+                        "Run"      : info_r.get("run_name", info_r.get("run_id", "")[:8]),
+                        "Statut"   : info_r.get("status", "-"),
+                        "Modèle"   : params.get("model", "-"),
+                        "F1"       : f"{metrics['f1']:.4f}"       if "f1"      in metrics else "-",
+                        "ROC AUC"  : f"{metrics['roc_auc']:.4f}"  if "roc_auc" in metrics else "-",
+                    })
+                df_runs = pd.DataFrame(rows)
+                st.dataframe(df_runs, use_container_width=True, hide_index=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # ── Model Registry ─────────────────────────────────────────────────────
+        st.markdown("### 🏛️ MLflow — Model Registry")
+        models = get_registered_models()
+        if not models:
+            st.info("Aucun modèle enregistré dans le registry.")
+        else:
+            for model in models:
+                name = model.get("name", "-")
+                with st.expander(f"📦 {name}"):
+                    versions = get_model_versions(name)
+                    if not versions:
+                        st.write("Aucune version.")
+                    else:
+                        rows_v = []
+                        for v in sorted(versions, key=lambda x: int(x.get("version", 0)), reverse=True):
+                            aliases = ", ".join(v.get("aliases", [])) or "-"
+                            rows_v.append({
+                                "Version" : v.get("version", "-"),
+                                "Statut"  : v.get("status", "-"),
+                                "Aliases" : aliases,
+                                "Run ID"  : v.get("run_id", "-")[:12] + "...",
+                            })
+                        st.dataframe(pd.DataFrame(rows_v),
+                                     use_container_width=True, hide_index=True)
+                        st.markdown(
+                            f"[🔗 Ouvrir dans MLflow]({MLFLOW_URL}/#/models/{name})",
+                            unsafe_allow_html=False,
+                        )
+
+
 st.markdown(
     f"<hr style='border-color:#2d3561; margin-top:2rem;'>"
     f"<p style='text-align:center; color:#3d4f6e; font-size:0.78rem;'>"
-    f"API : {API_URL}</p>",
+    f"API : {API_URL} &nbsp;|&nbsp; MLflow : {MLFLOW_URL}</p>",
     unsafe_allow_html=True,
 )
