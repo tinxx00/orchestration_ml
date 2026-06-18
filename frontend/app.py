@@ -23,6 +23,7 @@ RETRAIN_DAG_ID   = os.getenv("RETRAIN_DAG_ID",   "model_retraining")
 EXPERIMENT_NAME  = os.getenv("MLFLOW_EXPERIMENT", "heart-disease-baseline")
 
 AUTHOR = "Tinhinane ISSAD"
+GITHUB_URL = os.getenv("GITHUB_URL", "https://github.com/tinxx00/orchestration_ml")
 
 # ─── Palette pastel bleue ────────────────────────────────────────────────────────
 INK      = "#2f4a66"
@@ -123,6 +124,16 @@ div[data-testid="stForm"] { background:#ffffff; border:1px solid #e2ecf5; border
     background: linear-gradient(120deg,#5b9bd5 0%, #7ec0ef 100%);
     color:#ffffff; border:none; border-radius:12px; font-weight:700; }
 .stButton button:hover { filter: brightness(1.05); }
+
+/* Boutons-liens */
+.link-btn { display:inline-block; background:linear-gradient(120deg,#5b9bd5,#7ec0ef);
+    color:#ffffff !important; padding:9px 18px; border-radius:11px; font-size:0.83rem;
+    font-weight:700; text-decoration:none !important; margin:4px 8px 4px 0;
+    box-shadow:0 3px 10px rgba(91,155,213,0.25); transition:filter .15s; }
+.link-btn:hover { filter:brightness(1.06); }
+.link-btn.ghost { background:#ffffff; color:#5b9bd5 !important;
+    border:1.5px solid #cfe2f4; box-shadow:none; }
+.link-btn.gh { background:linear-gradient(120deg,#2f3a4a,#44506a); }
 </style>
 """, unsafe_allow_html=True)
 
@@ -366,6 +377,13 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
+    st.markdown(
+        f'<a class="link-btn gh" href="{GITHUB_URL}" target="_blank" '
+        f'style="display:block; text-align:center; margin-bottom:0.8rem;">'
+        f'📦 Code source (GitHub)</a>',
+        unsafe_allow_html=True,
+    )
+
     page = st.radio(
         "Navigation",
         ["📖  Contexte métier", "🔍  Prédiction", "🧪  Comparaison des modèles",
@@ -592,8 +610,8 @@ elif page == "🧪  Comparaison des modèles":
             st.dataframe(disp, use_container_width=True, hide_index=True)
 
         st.markdown(
-            f"<a href='{MLFLOW_PUBLIC_URL}' target='_blank' "
-            f"style='color:#5b9bd5; font-weight:600;'>🔗 Voir le détail dans MLflow</a>",
+            f"<a class='link-btn' href='{MLFLOW_PUBLIC_URL}' target='_blank'>"
+            f"📊 Voir le détail dans MLflow</a>",
             unsafe_allow_html=True)
 
 
@@ -756,6 +774,17 @@ elif page == "🔧  Infrastructure":
     airflow_ok = get_airflow_health()
     info2 = get_model_info() if api_ok else {}
 
+    frontend_url = API_PUBLIC_URL.replace(":8000", ":8502").replace("/docs", "")
+    st.markdown("##### 🔗 Accès rapide")
+    st.markdown(f"""
+        <a class="link-btn" href="{API_PUBLIC_URL}/docs" target="_blank">🤖 API (Swagger)</a>
+        <a class="link-btn" href="{MLFLOW_PUBLIC_URL}" target="_blank">📊 MLflow</a>
+        <a class="link-btn" href="{AIRFLOW_PUBLIC_URL}" target="_blank">🌀 Airflow</a>
+        <a class="link-btn" href="{frontend_url}" target="_blank">🫀 Frontend</a>
+        <a class="link-btn gh" href="{GITHUB_URL}" target="_blank">📦 GitHub</a>
+    """, unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
+
     s1, s2, s3, s4 = st.columns(4)
 
     def svc_card(col, icon, name, ok, detail, url):
@@ -767,8 +796,8 @@ elif page == "🔧  Infrastructure":
                 <div style="font-weight:700; font-size:1rem; margin:0.4rem 0 0.2rem; color:#3a3f55;">{name}</div>
                 <div style="color:{color}; font-size:0.82rem; font-weight:700;">{status}</div>
                 <div style="color:#9aa0b5; font-size:0.78rem; margin-top:0.3rem;">{detail}</div>
-                <div style="margin-top:0.6rem;"><a href="{url}" target="_blank"
-                   style="color:#5b9bd5; font-size:0.78rem; font-weight:600;">🔗 {url}</a></div>
+                <div style="margin-top:0.7rem;"><a class="link-btn" href="{url}"
+                   target="_blank" style="padding:6px 14px; font-size:0.76rem;">Ouvrir ↗</a></div>
                 </div>""", unsafe_allow_html=True)
 
     svc_card(s1, "🤖", "API FastAPI", api_ok, f"modèle : {info2.get('model_name','-')}", f"{API_PUBLIC_URL}/docs")
@@ -820,8 +849,9 @@ elif page == "🔧  Infrastructure":
                     <span style="color:#9aa0b5; font-size:0.78rem; margin-left:auto;">{trigger}</span></div>""",
                     unsafe_allow_html=True)
             st.markdown(
-                f"<div style='margin-top:0.6rem;'><a href='{AIRFLOW_PUBLIC_URL}/dags/{RETRAIN_DAG_ID}/grid' "
-                f"target='_blank' style='color:#5b9bd5; font-weight:600;'>🔗 Ouvrir le DAG dans Airflow</a></div>",
+                f"<div style='margin-top:0.7rem;'><a class='link-btn' "
+                f"href='{AIRFLOW_PUBLIC_URL}/dags/{RETRAIN_DAG_ID}/grid' target='_blank'>"
+                f"🌀 Ouvrir le DAG dans Airflow</a></div>",
                 unsafe_allow_html=True)
 
 
