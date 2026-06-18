@@ -21,14 +21,14 @@ AIRFLOW_PASSWORD = os.getenv("AIRFLOW_PASSWORD", "admin")
 RETRAIN_DAG_ID   = os.getenv("RETRAIN_DAG_ID",   "model_retraining")
 
 # ─── Palette pastel ──────────────────────────────────────────────────────────────
-INK      = "#3a3f55"   # texte principal
-MUTED    = "#8b91a8"   # texte secondaire
-LAVENDER = "#8b7fd4"   # accent principal (violet pastel)
-MINT     = "#6cc8a0"   # vert menthe (sain / succès)
+INK      = "#2f4a66"   # texte principal (bleu ardoise)
+MUTED    = "#8595a8"   # texte secondaire
+LAVENDER = "#5b9bd5"   # accent principal (bleu pastel)
+MINT     = "#5cb8a8"   # vert d'eau (sain / succès)
 CORAL    = "#e88a8a"   # corail (risque / échec)
 AMBER    = "#e9b872"   # ambre (intermédiaire)
-SKY      = "#7eb6e8"   # bleu pastel
-CARD_BD  = "#ececf5"   # bordure carte
+SKY      = "#6fa8dc"   # bleu pastel
+CARD_BD  = "#e2ecf5"   # bordure carte
 
 # ─── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -41,41 +41,41 @@ st.set_page_config(
 # ─── CSS ──────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-[data-testid="stAppViewContainer"] { background: #f5f6fc; }
+[data-testid="stAppViewContainer"] { background: #eef5fc; }
 [data-testid="stHeader"] { background: transparent; }
 .block-container { padding-top: 2.2rem; }
 
 [data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #efeafd 0%, #fdeaf1 100%);
-    border-right: 1px solid #ececf5;
+    background: linear-gradient(180deg, #dcecfb 0%, #eaf4fc 100%);
+    border-right: 1px solid #d8e6f3;
 }
-[data-testid="stSidebar"] * { color: #4a4f6a; }
+[data-testid="stSidebar"] * { color: #34536e; }
 
-h1, h2, h3, h4 { color: #3a3f55; }
+h1, h2, h3, h4 { color: #2f4a66; }
 
 /* Hero */
 .hero-card {
-    background: linear-gradient(120deg, #e8e3fb 0%, #f3e6f5 45%, #e2eefb 100%);
-    border: 1px solid #e3ddf6;
+    background: linear-gradient(120deg, #d6e9fb 0%, #e4f1fc 45%, #cfe6f9 100%);
+    border: 1px solid #cfe2f4;
     border-radius: 22px;
     padding: 2rem 2.4rem;
     margin-bottom: 1.6rem;
-    box-shadow: 0 6px 24px rgba(139,127,212,0.10);
+    box-shadow: 0 6px 24px rgba(91,155,213,0.12);
 }
-.hero-card h1 { margin: 0; font-size: 2rem; color: #4a4566; font-weight: 800; }
-.hero-card p  { color: #7a7298; margin: 0.5rem 0 0 0; font-size: 0.98rem; }
+.hero-card h1 { margin: 0; font-size: 2rem; color: #2f4a66; font-weight: 800; }
+.hero-card p  { color: #5a7798; margin: 0.5rem 0 0 0; font-size: 0.98rem; }
 
 /* KPI cards */
 .kpi-card {
     background: #ffffff;
-    border: 1px solid #ececf5;
+    border: 1px solid #e2ecf5;
     border-radius: 16px;
     padding: 1.3rem 1rem;
     text-align: center;
-    box-shadow: 0 3px 14px rgba(140,130,200,0.07);
+    box-shadow: 0 3px 14px rgba(91,155,213,0.08);
 }
-.kpi-value { font-size: 2.1rem; font-weight: 800; color: #3a3f55; line-height: 1.1; }
-.kpi-label { font-size: 0.72rem; color: #9aa0b5; text-transform: uppercase;
+.kpi-value { font-size: 2.1rem; font-weight: 800; color: #2f4a66; line-height: 1.1; }
+.kpi-label { font-size: 0.72rem; color: #93a3b5; text-transform: uppercase;
              letter-spacing: 0.09em; margin-top: 0.3rem; }
 
 /* Résultat */
@@ -110,23 +110,23 @@ h1, h2, h3, h4 { color: #3a3f55; }
 
 /* Service / endpoint / run rows */
 .soft-row {
-    background:#ffffff; border:1px solid #ececf5; border-radius:12px;
+    background:#ffffff; border:1px solid #e2ecf5; border-radius:12px;
     padding:0.75rem 1.2rem; margin:0.45rem 0; display:flex;
     align-items:center; gap:1.1rem;
-    box-shadow: 0 2px 10px rgba(140,130,200,0.05);
+    box-shadow: 0 2px 10px rgba(91,155,213,0.06);
 }
 
 /* Form */
 div[data-testid="stForm"] {
-    background: #ffffff; border: 1px solid #ececf5; border-radius: 18px;
-    padding: 1.6rem; box-shadow: 0 4px 18px rgba(140,130,200,0.07);
+    background: #ffffff; border: 1px solid #e2ecf5; border-radius: 18px;
+    padding: 1.6rem; box-shadow: 0 4px 18px rgba(91,155,213,0.08);
 }
 
 /* Tabs */
 button[data-baseweb="tab"] { font-size: 0.95rem; }
 [data-testid="stForm"] button[kind="formSubmit"],
 .stButton button {
-    background: linear-gradient(120deg,#8b7fd4 0%, #b39ae0 100%);
+    background: linear-gradient(120deg,#5b9bd5 0%, #7ec0ef 100%);
     color: #ffffff; border: none; border-radius: 12px; font-weight: 700;
 }
 .stButton button:hover { filter: brightness(1.05); }
@@ -344,7 +344,7 @@ st.markdown("""
   <h1>🫀 Heart Disease Classifier</h1>
   <p>Estimation du risque de maladie cardiaque à partir de données cliniques ·
      Modèle ML entraîné sur Heart Disease UCI (303 patients)</p>
-  <p style="margin-top:0.7rem; font-size:0.85rem; color:#9a8fc4; font-weight:600;">
+  <p style="margin-top:0.7rem; font-size:0.85rem; color:#5a87b8; font-weight:600;">
      Projet MLOps · réalisé par <b>Tinhinane ISSAD</b></p>
 </div>
 """, unsafe_allow_html=True)
@@ -672,7 +672,7 @@ with tab4:
                 </div>
                 <div style="margin-top:0.6rem;">
                     <a href="{url}" target="_blank"
-                       style="color:#8b7fd4; font-size:0.78rem; font-weight:600;">
+                       style="color:#5b9bd5; font-size:0.78rem; font-weight:600;">
                         🔗 {url}
                     </a>
                 </div>
@@ -778,7 +778,7 @@ with tab4:
             st.markdown(
                 f"<div style='margin-top:0.6rem;'>"
                 f"<a href='{AIRFLOW_PUBLIC_URL}/dags/{RETRAIN_DAG_ID}/grid' "
-                f"target='_blank' style='color:#8b7fd4; font-size:0.82rem; "
+                f"target='_blank' style='color:#5b9bd5; font-size:0.82rem; "
                 f"font-weight:600;'>🔗 Ouvrir le DAG dans Airflow</a></div>",
                 unsafe_allow_html=True,
             )
