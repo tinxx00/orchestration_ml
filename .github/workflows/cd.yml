@@ -17,11 +17,22 @@ permissions:
 
 jobs:
   build-push:
-    name: Build & push de l'image API (GHCR)
+    name: Build & push ${{ matrix.image }} (GHCR)
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: heart-api
+            dockerfile: docker/Dockerfile.api
+          - image: heart-frontend
+            dockerfile: docker/Dockerfile.frontend
+          - image: heart-airflow
+            dockerfile: docker/Dockerfile.airflow
 
     steps:
       - name: Checkout du depot
@@ -41,7 +52,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}/heart-api
+          images: ghcr.io/${{ github.repository }}/${{ matrix.image }}
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=sha,format=short
@@ -51,9 +62,9 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: docker/Dockerfile.api
+          file: ${{ matrix.dockerfile }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=${{ matrix.image }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image }}
